@@ -1,6 +1,10 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include <algorithm>  // for std::min, std::max
+#include <cstring>    // for memcpy
+#include <cstddef>    // for size_t
+
 #include <glad/glad.h> 
 
 #include <glm/glm.hpp>
@@ -11,6 +15,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/material.h>
 
 #include <learnopengl/mesh.h>
 #include <learnopengl/shader.h>

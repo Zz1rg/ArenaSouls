@@ -21,5 +21,20 @@
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="player.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LearnOpenGL-master\src\stb_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="git.ignore" />
+    <None Include="anim_model.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="anim_model.vs">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
