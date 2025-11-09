@@ -71,7 +71,7 @@ public:
 			m_Scales.push_back(data);
 		}
 	}
-
+	
 	void Update(float animationTime)
 	{
 		glm::vec3 tmp;
@@ -84,7 +84,7 @@ public:
 	glm::mat4 GetLocalTransform() { return m_LocalTransform; }
 	std::string GetBoneName() const { return m_Name; }
 	int GetBoneID() { return m_ID; }
-
+	
 
 
 	int GetPositionIndex(float animationTime)
@@ -118,7 +118,7 @@ public:
 	}
 
 
-	//private:
+//private:
 
 	float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime)
 	{
@@ -129,7 +129,7 @@ public:
 		return scaleFactor;
 	}
 
-	glm::mat4 InterpolatePosition(float animationTime, glm::vec3& finalPos)
+	glm::mat4 InterpolatePosition(float animationTime, glm::vec3 &finalPos)
 	{
 		if (1 == m_NumPositions)
 			return glm::translate(glm::mat4(1.0f), m_Positions[0].position);
@@ -144,7 +144,7 @@ public:
 		return glm::translate(glm::mat4(1.0f), finalPosition);
 	}
 
-	glm::mat4 InterpolateRotation(float animationTime, glm::quat& finalQuat)
+	glm::mat4 InterpolateRotation(float animationTime, glm::quat &finalQuat)
 	{
 		if (1 == m_NumRotations)
 		{
@@ -164,7 +164,7 @@ public:
 
 	}
 
-	glm::mat4 InterpolateScaling(float animationTime, glm::vec3& finalScaling)
+	glm::mat4 InterpolateScaling(float animationTime, glm::vec3 &finalScaling)
 	{
 		if (1 == m_NumScalings)
 			return glm::scale(glm::mat4(1.0f), m_Scales[0].scale);

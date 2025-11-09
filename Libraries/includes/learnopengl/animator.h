@@ -91,7 +91,7 @@ public:
 		if (m_CurrentAnimation2) {
 			Bone2 = m_CurrentAnimation2->FindBone(nodeName);
 		}
-
+		
 		if (Bone1)
 		{
 			Bone1->Update(m_CurrentTime);
@@ -121,7 +121,7 @@ public:
 		return m_FinalBoneMatrices;
 	}
 
-	//private:
+//private:
 	std::vector<glm::mat4> m_FinalBoneMatrices;
 	Animation* m_CurrentAnimation;
 	Animation* m_CurrentAnimation2;
