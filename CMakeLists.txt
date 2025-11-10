@@ -75,9 +75,8 @@ add_executable(${PROJECT_NAME} ${MAIN_SOURCES})
 
 # Set output directory properties for the executable
 set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin"
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/x64/Debug"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/x64/Release"
 )
 
 # Explicitly enforce build order.
@@ -124,20 +123,21 @@ if(WIN32)
     endif()
 endif()
 
+## DONT NEED
 # Copy Shaders
-file(GLOB SHADERS_TO_COPY
-    "${CMAKE_SOURCE_DIR}/*.vs"
-    "${CMAKE_SOURCE_DIR}/*.fs"
-)
+# file(GLOB SHADERS_TO_COPY
+#     "${CMAKE_SOURCE_DIR}/*.vs"
+#     "${CMAKE_SOURCE_DIR}/*.fs"
+# )
 
 # Copy shaders to the executable's output directory
-foreach(SHADER ${SHADERS_TO_COPY})
-    add_custom_command(
-        TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${SHADER}
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>
-        COMMENT "Copying shader: ${SHADER}"
-    )
-endforeach()
+# foreach(SHADER ${SHADERS_TO_COPY})
+#     add_custom_command(
+#         TARGET ${PROJECT_NAME}
+#         POST_BUILD
+#         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#             ${SHADER}
+#             $<TARGET_FILE_DIR:${PROJECT_NAME}>
+#         COMMENT "Copying shader: ${SHADER}"
+#     )
+# endforeach()
