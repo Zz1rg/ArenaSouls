@@ -66,6 +66,7 @@ target_include_directories(STB_IMAGE
 set(MAIN_SOURCES
     main.cpp
     player.cpp
+    TrainingDummy.cpp
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES})
