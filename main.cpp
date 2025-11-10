@@ -128,9 +128,14 @@ int main()
         arena.Draw(shader);
 
         glm::vec3 cameraOffset(0.0f, 1.5f, 3.0f); // Adjusted height and distance
-        float panSpeed = 0.1f; // Smooth horizontal panning speed
+        float panSpeed = 0.05f; // Smooth horizontal panning speed
         float verticalPanSpeed = 0.05f; // Smooth vertical panning speed
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+            camera.shake(0.2f, 0.1f);
+        }
+        camera.updateShake(deltaTime);
         camera.FollowPlayerWithOffset(player.position, cameraOffset, panSpeed, verticalPanSpeed);
+        camera.updateShake(deltaTime);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

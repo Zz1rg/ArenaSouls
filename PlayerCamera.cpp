@@ -1,7 +1,7 @@
 #include "PlayerCamera.h"
 
 PlayerCamera::PlayerCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-    : Camera(position, up, yaw, pitch), firstMouse(true), lastX(0.0f), lastY(0.0f)
+    : Camera(position, up, yaw, pitch), firstMouse(true), lastX(0.0f), lastY(0.0f), isShaking(false), shakeDuration(0.0f), shakeMagnitude(0.0f), shakeTimer(0.0f)
 {
     // It's better to initialize lastX and lastY with the actual screen center,
     // but we'll set them in the first mouse callback.
@@ -40,4 +40,26 @@ void PlayerCamera::FollowPlayerWithOffset(const glm::vec3& playerPosition, const
     Position.x += (desiredPosition.x - Position.x) * panSpeed;
     Position.z += (desiredPosition.z - Position.z) * panSpeed;
     Position.y += (desiredPosition.y - Position.y) * verticalPanSpeed;
+}
+
+void PlayerCamera::shake(float duration, float magnitude) {
+    isShaking = true;
+    shakeDuration = duration;
+    shakeMagnitude = magnitude;
+    shakeTimer = duration;
+}
+
+void PlayerCamera::updateShake(float deltaTime) {
+    if (isShaking) {
+        if (shakeTimer > 0) {
+            float randomX = ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
+            float randomY = ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
+            Position.x += randomX * shakeMagnitude;
+            Position.y += randomY * shakeMagnitude;
+            shakeTimer -= deltaTime;
+        }
+        else {
+            isShaking = false;
+        }
+    }
 }

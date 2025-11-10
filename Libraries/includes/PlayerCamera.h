@@ -13,11 +13,18 @@ public:
     void ProcessScrollCallback(double yoffset);
     void FollowPlayer(const glm::vec3& playerPosition, const glm::vec3& offset);
     void FollowPlayerWithOffset(const glm::vec3& playerPosition, const glm::vec3& offset, float panSpeed, float verticalPanSpeed);
+    void updateShake(float deltaTime);
+    void shake(float duration, float magnitude);
 
 private:
     bool firstMouse;
     float lastX;
     float lastY;
+
+    bool isShaking;
+    float shakeDuration;
+    float shakeMagnitude;
+    float shakeTimer;
 };
 
 #endif // PLAYER_CAMERA_H
