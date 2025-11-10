@@ -18,7 +18,8 @@ enum DummyState
     DUMMY_GUARD_TO_PUNCH,
     DUMMY_PUNCHING,
     DUMMY_PUNCH_TO_GUARD,
-    DUMMY_PUNCH_TO_IDLE
+    DUMMY_PUNCH_TO_IDLE,
+    DUMMY_GOT_HIT // New state for handling got-hit animation
 };
 
 class TrainingDummy
@@ -33,9 +34,9 @@ public:
 
     Model model;
     Animation idleAnim;
-    // TODO: Add these animations when you have the files:
-    // Animation guardAnim;
-    // Animation punchAnim;
+    Animation guardAnim;
+    Animation punchAnim;
+    Animation gotHitAnim;
 
     Animator animator;
 

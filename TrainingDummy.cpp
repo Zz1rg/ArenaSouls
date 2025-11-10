@@ -13,11 +13,11 @@ TrainingDummy::TrainingDummy()
     dummyState(DUMMY_IDLE),
     guardDistance(5.0f),
     punchDistance(2.0f),
-    model("resources/objects/dummy/Breathing Idle.dae"),
-    idleAnim("resources/objects/dummy/Breathing Idle.dae", &model),
-    // TODO: Initialize these when you have the animation files:
-    // guardAnim("resources/objects/dummy/guard.dae", &model),
-    // punchAnim("resources/objects/dummy/punch.dae", &model),
+    model("resources/objects/dummy/idle/Breathing Idle.dae"),
+    idleAnim("resources/objects/dummy/idle/Breathing Idle.dae", &model),
+    guardAnim("resources/objects/dummy/guard/Bouncing Fight Idle.dae", &model),
+    punchAnim("resources/objects/dummy/punch/Cross Punch.dae", &model),
+    gotHitAnim("resources/objects/dummy/got-hit/Head Hit.dae", &model),
     animator(&idleAnim) {}
 
 float TrainingDummy::distanceToPlayer(glm::vec3 playerPosition) {
@@ -28,151 +28,110 @@ void TrainingDummy::update(float deltaTime, const Player& player) {
     float distance = distanceToPlayer(player.position);
 
     // Check if the training dummy is hit by the player
-    if (isHitByPlayer(player)) {
-        std::cout << "Training Dummy was hit during update!" << std::endl;
+    if (isHitByPlayer(player) && dummyState != DUMMY_GOT_HIT) {
+        dummyState = DUMMY_GOT_HIT;
+        return;
     }
 
     switch (dummyState) {
     case DUMMY_IDLE:
-        // Play idle animation
         animator.PlayAnimation(&idleAnim, NULL, animator.m_CurrentTime, 0.0f, 0.0f);
-
-        // Check if player is close enough to trigger guard
         if (distance <= guardDistance) {
-            // TODO: When guard animation is available, transition to
-            // DUMMY_IDLE_TO_GUARD For now, we'll just log it
-            std::cout << "Player entered guard range! Distance: " << distance << std::endl;
-            // Uncomment when guard animation is ready:
-            // blendAmount = 0.0f;
-            // animator.PlayAnimation(&idleAnim, &guardAnim,
-            // animator.m_CurrentTime, 0.0f, blendAmount); dummyState =
-            // DUMMY_IDLE_TO_GUARD;
+            blendAmount = 0.0f;
+            animator.PlayAnimation(&idleAnim, &guardAnim, animator.m_CurrentTime, 0.0f, blendAmount);
+            dummyState = DUMMY_IDLE_TO_GUARD;
         }
         break;
 
     case DUMMY_IDLE_TO_GUARD:
-        // TODO: Implement when guard animation is available
-        // Blend from idle to guard animation
         blendAmount += blendRate;
         blendAmount = fmod(blendAmount, 1.0f);
-        // animator.PlayAnimation(&idleAnim, &guardAnim,
-        // animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-
+        animator.PlayAnimation(&idleAnim, &guardAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (blendAmount > 0.9f) {
             blendAmount = 0.0f;
-            float startTime = animator.m_CurrentTime2;
-            // animator.PlayAnimation(&guardAnim, NULL, startTime, 0.0f,
-            // blendAmount);
+            animator.PlayAnimation(&guardAnim, NULL, animator.m_CurrentTime2, 0.0f, 0.0f);
             dummyState = DUMMY_GUARDING;
         }
         break;
 
     case DUMMY_GUARDING:
-        // TODO: Play guard animation when available
-        // animator.PlayAnimation(&guardAnim, NULL, animator.m_CurrentTime,
-        // 0.0f, 0.0f);
-
-        // Check if player is close enough to punch
+        animator.PlayAnimation(&guardAnim, NULL, animator.m_CurrentTime, 0.0f, 0.0f);
         if (distance <= punchDistance) {
-            std::cout << "Player entered punch range! Distance: " << distance << std::endl;
-            // Uncomment when punch animation is ready:
-            // blendAmount = 0.0f;
-            // animator.PlayAnimation(&guardAnim, &punchAnim,
-            // animator.m_CurrentTime, 0.0f, blendAmount); dummyState =
-            // DUMMY_GUARD_TO_PUNCH;
-        }
-        // Check if player moved away
-        else if (distance > guardDistance + 0.5f) { // Small hysteresis to prevent flickering
             blendAmount = 0.0f;
-            // animator.PlayAnimation(&guardAnim, &idleAnim,
-            // animator.m_CurrentTime, 0.0f, blendAmount);
+            animator.PlayAnimation(&guardAnim, &punchAnim, animator.m_CurrentTime, 0.0f, blendAmount);
+            dummyState = DUMMY_GUARD_TO_PUNCH;
+        } else if (distance > guardDistance + 0.5f) {
+            blendAmount = 0.0f;
+            animator.PlayAnimation(&guardAnim, &idleAnim, animator.m_CurrentTime, 0.0f, blendAmount);
             dummyState = DUMMY_GUARD_TO_IDLE;
         }
         break;
 
     case DUMMY_GUARD_TO_IDLE:
-        // TODO: Implement when guard animation is available
         blendAmount += blendRate;
         blendAmount = fmod(blendAmount, 1.0f);
-        // animator.PlayAnimation(&guardAnim, &idleAnim,
-        // animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-
+        animator.PlayAnimation(&guardAnim, &idleAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (blendAmount > 0.9f) {
             blendAmount = 0.0f;
-            float startTime = animator.m_CurrentTime2;
-            animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);
+            animator.PlayAnimation(&idleAnim, NULL, animator.m_CurrentTime2, 0.0f, 0.0f);
             dummyState = DUMMY_IDLE;
         }
         break;
 
     case DUMMY_GUARD_TO_PUNCH:
-        // TODO: Implement when punch animation is available
         blendAmount += blendRate;
         blendAmount = fmod(blendAmount, 1.0f);
-        // animator.PlayAnimation(&guardAnim, &punchAnim,
-        // animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-
+        animator.PlayAnimation(&guardAnim, &punchAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (blendAmount > 0.9f) {
             blendAmount = 0.0f;
-            float startTime = animator.m_CurrentTime2;
-            // animator.PlayAnimation(&punchAnim, NULL, startTime, 0.0f,
-            // blendAmount);
+            animator.PlayAnimation(&punchAnim, NULL, animator.m_CurrentTime2, 0.0f, 0.0f);
             dummyState = DUMMY_PUNCHING;
         }
         break;
 
     case DUMMY_PUNCHING:
-        // TODO: Play punch animation when available
-        // animator.PlayAnimation(&punchAnim, NULL, animator.m_CurrentTime,
-        // 0.0f, 0.0f);
-
-        // Check if punch animation is finished (you'll need to get the
-        // animation duration) For now, we'll use a simple time-based
-        // approach if (animator.m_CurrentTime > punchAnim.GetDuration() -
-        // 0.1f) {
-        //     blendAmount = 0.0f;
-        //
-        //     // Decide next state based on player distance
-        //     if (distance <= guardDistance) {
-        //         animator.PlayAnimation(&punchAnim, &guardAnim,
-        //         animator.m_CurrentTime, 0.0f, blendAmount); dummyState =
-        //         DUMMY_PUNCH_TO_GUARD;
-        //     } else {
-        //         animator.PlayAnimation(&punchAnim, &idleAnim,
-        //         animator.m_CurrentTime, 0.0f, blendAmount); dummyState =
-        //         DUMMY_PUNCH_TO_IDLE;
-        //     }
-        // }
+        animator.PlayAnimation(&punchAnim, NULL, animator.m_CurrentTime, 0.0f, 0.0f);
+        if (animator.m_CurrentTime > punchAnim.GetDuration() - 0.1f) {
+            blendAmount = 0.0f;
+            if (distance <= guardDistance) {
+                animator.PlayAnimation(&punchAnim, &guardAnim, animator.m_CurrentTime, 0.0f, blendAmount);
+                dummyState = DUMMY_PUNCH_TO_GUARD;
+            } else {
+                animator.PlayAnimation(&punchAnim, &idleAnim, animator.m_CurrentTime, 0.0f, blendAmount);
+                dummyState = DUMMY_PUNCH_TO_IDLE;
+            }
+        }
         break;
 
     case DUMMY_PUNCH_TO_GUARD:
-        // TODO: Implement when animations are available
         blendAmount += blendRate;
         blendAmount = fmod(blendAmount, 1.0f);
-        // animator.PlayAnimation(&punchAnim, &guardAnim,
-        // animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-
+        animator.PlayAnimation(&punchAnim, &guardAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (blendAmount > 0.9f) {
             blendAmount = 0.0f;
-            float startTime = animator.m_CurrentTime2;
-            // animator.PlayAnimation(&guardAnim, NULL, startTime, 0.0f,
-            // blendAmount);
+            animator.PlayAnimation(&guardAnim, NULL, animator.m_CurrentTime2, 0.0f, 0.0f);
             dummyState = DUMMY_GUARDING;
         }
         break;
 
     case DUMMY_PUNCH_TO_IDLE:
-        // TODO: Implement when punch animation is available
         blendAmount += blendRate;
         blendAmount = fmod(blendAmount, 1.0f);
-        // animator.PlayAnimation(&punchAnim, &idleAnim,
-        // animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-
+        animator.PlayAnimation(&punchAnim, &idleAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (blendAmount > 0.9f) {
             blendAmount = 0.0f;
-            float startTime = animator.m_CurrentTime2;
-            animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);
+            animator.PlayAnimation(&idleAnim, NULL, animator.m_CurrentTime2, 0.0f, 0.0f);
             dummyState = DUMMY_IDLE;
+        }
+        break;
+
+    case DUMMY_GOT_HIT:
+        blendAmount = 0.0f;
+        animator.PlayAnimation(&gotHitAnim, NULL, animator.m_CurrentTime, 0.0f, 0.0f);
+        if (animator.m_CurrentTime > gotHitAnim.GetDuration() - 0.1f) {
+            blendAmount = 0.0f;
+            animator.PlayAnimation(&gotHitAnim, &idleAnim, animator.m_CurrentTime, 0.0f, blendAmount);
+            dummyState = DUMMY_IDLE_TO_GUARD; // Transition back to idle-to-guard for smooth recovery
         }
         break;
     }
@@ -221,9 +180,6 @@ bool TrainingDummy::isHitByPlayer(const Player& player) {
 
     bool isHit = collisionX && collisionY && collisionZ;
 
-    if (isHit) {
-        std::cout << "Training Dummy got hit by the player!" << std::endl;
-    }
 
     return isHit;
 }
