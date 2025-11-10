@@ -14,7 +14,7 @@ ContinuationIndentWidth: 4
 AccessModifierOffset: -4
 
 # Braces - opening brace on same line
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Attach
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
@@ -39,7 +39,7 @@ AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: true
-BreakConstructorInitializers: BeforeColon
+BreakConstructorInitializers: AfterComma
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 

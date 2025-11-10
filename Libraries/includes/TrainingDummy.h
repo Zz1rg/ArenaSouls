@@ -8,7 +8,8 @@
 
 #include <glm/glm.hpp>
 
-enum DummyState {
+enum DummyState
+{
     DUMMY_IDLE,
     DUMMY_IDLE_TO_GUARD,
     DUMMY_GUARDING,
@@ -19,9 +20,11 @@ enum DummyState {
     DUMMY_PUNCH_TO_IDLE
 };
 
-class TrainingDummy {
-   public:
+class TrainingDummy
+{
+public:
     glm::vec3 position;
+    glm::vec3 rotation; // Added rotation property
     float blendAmount;
     float blendRate;
     DummyState dummyState;
@@ -35,8 +38,8 @@ class TrainingDummy {
     Animator animator;
 
     // Distance thresholds
-    float guardDistance;  // Distance at which dummy puts up guard
-    float punchDistance;  // Distance at which dummy punches
+    float guardDistance; // Distance at which dummy puts up guard
+    float punchDistance; // Distance at which dummy punches
 
     TrainingDummy();
     TrainingDummy(glm::vec3 startPosition);

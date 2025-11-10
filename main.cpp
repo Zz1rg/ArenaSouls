@@ -89,9 +89,9 @@ int main()
 
     Shader shader("anim_model.vs", "anim_model.fs");
     Player player;
+    TrainingDummy dummy(glm::vec3(0.0f, -0.6f, -10.0f)); // Position dummy 10 units ahead
     //Model arena("resources/objects/arena/maze-grass/obj_export/maze_grass.obj");
     Model arena("resources/objects/arena/obj_v3/arena.obj");
-    TrainingDummy dummy(glm::vec3(0.0f, -0.6f, -10.0f)); // Position dummy 10 units ahead
 
     glEnable(GL_DEPTH_TEST);
 
@@ -128,6 +128,7 @@ int main()
 
         shader.setBool("useBones", true);
         player.draw(shader);
+        dummy.draw(shader);
 
         // draw arena
         shader.setBool("useBones", false);
@@ -136,7 +137,6 @@ int main()
         model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f)); // Scale it down
         shader.setMat4("model", model);
         arena.Draw(shader);
-        dummy.draw(shader);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
