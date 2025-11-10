@@ -1,7 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <learnopengl/shader_m.h>
-#include <learnopengl/camera.h>
+#include "PlayerCamera.h"
 #include "Player.h"
 
 #include <glm/glm.hpp>
@@ -10,20 +10,21 @@
 #include <learnopengl/model.h>
 #include "TrainingDummy.h"
 
-void processInput(GLFWwindow* window);
+
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
+void processInput(GLFWwindow *window);
+
 bool left_mouse_button_pressed = false;
 bool right_mouse_button_pressed = false;
 
 // Camera and timing
-Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
+PlayerCamera camera(glm::vec3(0.0f, 0.0f, 0.0f));
 float deltaTime = 0.0f, lastFrame = 0.0f;
-float lastX = 1000.0f / 2.0f, lastY = 800.0f / 2.0f;
-bool firstMouse = true;
 
 // settings
 const unsigned int SCR_WIDTH = 1000;
@@ -35,19 +36,6 @@ const float WALL_Z = 17.5f;
 
 // character position for camera raycasting
 glm::vec3 charPosition(0.0f, 0.0f, 0.0f);
-
-float cameraRaycast(const glm::vec3& start, const glm::vec3& end)
-{
-    glm::vec3 dir = end - start;
-    float totalDist = glm::length(dir);
-    if (totalDist < 0.001f)
-        return totalDist;
-
-    dir = glm::normalize(dir);
-    float step = 0.1f;
-    float dist = 0.0f;
-    return totalDist; // clear line
-}
 
 int main()
 {
@@ -102,6 +90,7 @@ int main()
         lastFrame = currentFrame;
 
         processInput(window);
+
         player.update(deltaTime);
         player.processInput(window, camera, deltaTime);
         if (abs(player.position.x) > WALL_X)
@@ -138,6 +127,11 @@ int main()
         shader.setMat4("model", model);
         arena.Draw(shader);
 
+        glm::vec3 cameraOffset(0.0f, 1.5f, 3.0f); // Adjusted height and distance
+        float panSpeed = 0.1f; // Smooth horizontal panning speed
+        float verticalPanSpeed = 0.05f; // Smooth vertical panning speed
+        camera.FollowPlayerWithOffset(player.position, cameraOffset, panSpeed, verticalPanSpeed);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
         //std::cout << "Left click: " << left_mouse_button_pressed << " Right click: " << right_mouse_button_pressed << std::endl;
@@ -151,59 +145,12 @@ int main()
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-    glm::vec3 moveDir(0.0f);
-    bool moved = false;
-
-    // Determine movement direction using camera's orientation
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        moveDir += camera.Front;
-    moved = true;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        moveDir -= camera.Front;
-    moved = true;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        moveDir -= camera.Right;
-    moved = true;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        moveDir += camera.Right;
-    moved = true;
-
-    //if (!moved) return;
-
-    // Normalize to avoid faster diagonal movement
-    if (glm::length(moveDir) > 0.0f)
-        moveDir = glm::normalize(moveDir);
-
-    // Update camera to stay behind character
-    glm::vec3 offset(0.0f, 0.6f, 1.5f); // height and distance
-    glm::vec3 desiredCamPos = charPosition - camera.Front * offset.z + glm::vec3(0.0f, offset.y, 0.0f);
-
-    glm::vec3 correctedCamPos = desiredCamPos;
-
-    camera.Position = correctedCamPos;
-
-    //// Perform raycast to check if something blocks the camera
-    //float hitDist = cameraRaycast(charPosition + glm::vec3(0.0f, offset.y, 0.0f), desiredCamPos, mazeGrid, maze_grid_size);
-
-    //// If blocked, move camera closer
-    //if (hitDist < glm::length(desiredCamPos - charPosition))
-    //{
-    //	glm::vec3 dir = glm::normalize(desiredCamPos - charPosition);
-    //	glm::vec3 newCamPos = charPosition + dir * hitDist;
-    //	camera.Position = newCamPos;
-    //}
-    //else
-    //{
-    //	camera.Position = desiredCamPos;
-    //}
 }
+
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
@@ -218,20 +165,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    camera.ProcessMouseCallback(xpos, ypos);
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -262,5 +196,5 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    camera.ProcessMouseScroll(yoffset);
+    camera.ProcessScrollCallback(yoffset);
 }
