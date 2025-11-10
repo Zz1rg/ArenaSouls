@@ -197,7 +197,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // -------------------------------------------------------
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    camera.ProcessMouseCallback(xpos, ypos);
+    if (State == GAME_ACTIVE)
+    {
+        camera.ProcessMouseCallback(xpos, ypos);
+    }
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -245,5 +248,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    camera.ProcessScrollCallback(yoffset);
+    if (State == GAME_ACTIVE)
+    {
+        camera.ProcessScrollCallback(yoffset);
+    }
 }
