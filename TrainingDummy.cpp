@@ -28,8 +28,11 @@ void TrainingDummy::update(float deltaTime, const Player& player) {
     float distance = distanceToPlayer(player.position);
 
     // Check if the training dummy is hit by the player
-    if (isHitByPlayer(player) && dummyState != DUMMY_GOT_HIT) {
-        dummyState = DUMMY_GOT_HIT;
+    if (isHitByPlayer(player) || (dummyState == DUMMY_PUNCHING && player.isBlockingState())) {
+        std::cout << "Training Dummy was hit during update!" << std::endl;
+        // Play the got-hit animation
+        animator.PlayAnimation(&gotHitAnim, NULL, 0.0f, 0.0f, 0.0f); // Reset animation time to start
+        dummyState = DUMMY_GOT_HIT; // Transition to got-hit state
         return;
     }
 

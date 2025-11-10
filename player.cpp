@@ -517,3 +517,7 @@ bool Player::isAttacking() const {
            charState == IDLE_ATTACK_1 || charState == CHAIN_ATTACK_2 || charState == CHAIN_ATTACK_3 ||
            charState == RUN_ATTACK || charState == RUN_ATTACKING || charState == WALK_ATTACK;
 }
+
+bool Player::isBlockingState() const {
+    return charState == BLOCK || charState == BLOCK_WALK || charState == BLOCK_IDLE || isBlocking;
+}

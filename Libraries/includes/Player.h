@@ -51,6 +51,9 @@ public:
 
     // Check if the player is currently attacking
     bool isAttacking() const;
+
+    // Check if the player is in a blocking state
+    bool isBlockingState() const;
 };
 
 #endif
