@@ -4,6 +4,11 @@
 #include <learnopengl/camera.h>
 #include "Player.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <learnopengl/model.h>
+
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -14,7 +19,7 @@ bool left_mouse_button_pressed = false;
 bool right_mouse_button_pressed = false;
 
 // Camera and timing
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 float lastX = 1000.0f / 2.0f, lastY = 800.0f / 2.0f;
 bool firstMouse = true;
@@ -22,6 +27,25 @@ bool firstMouse = true;
 // settings
 const unsigned int SCR_WIDTH = 1000;
 const unsigned int SCR_HEIGHT = 800;
+
+// wall collision
+const float WALL_X = 17.5f;
+const float WALL_Z = 17.5f;
+
+// character position for camera raycasting
+glm::vec3 charPosition(0.0f, 0.0f, 0.0f);
+
+float cameraRaycast(const glm::vec3& start, const glm::vec3& end)
+{
+	glm::vec3 dir = end - start;
+	float totalDist = glm::length(dir);
+	if (totalDist < 0.001f) return totalDist;
+
+	dir = glm::normalize(dir);
+	float step = 0.1f;
+	float dist = 0.0f;
+	return totalDist; // clear line
+}
 
 int main()
 {
@@ -63,6 +87,8 @@ int main()
 
     Shader shader("anim_model.vs", "anim_model.fs");
     Player player;
+	//Model arena("resources/objects/arena/maze-grass/obj_export/maze_grass.obj");
+	Model arena("resources/objects/arena/obj_v3/arena.obj");
 
     glEnable(GL_DEPTH_TEST);
 
@@ -73,8 +99,17 @@ int main()
 
         processInput(window);
         player.update(deltaTime);
+		player.processInput(window, camera, deltaTime);
+		if (abs(player.position.x) > WALL_X) {
+			player.position.x = (player.position.x > 0) ? WALL_X : -WALL_X;
+		}
+		if (abs(player.position.z) > WALL_Z) {
+			player.position.z = (player.position.z > 0) ? WALL_Z : -WALL_Z;
+		}
+		charPosition = player.position;
+		//camera.FollowPlayer(player.position);
 
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glClearColor(0.817f, 0.9529f, 0.9804f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.use();
@@ -84,12 +119,24 @@ int main()
         shader.setMat4("view", view);
 		//std::cout << "HI";
 
+		shader.setBool("useBones", true);
         player.draw(shader);
+
+		// draw arena
+		shader.setBool("useBones", false);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -1.35f, 0.0f)); // Translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// Scale it down
+		shader.setMat4("model", model);
+		arena.Draw(shader);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
 		//std::cout << "Left click: " << left_mouse_button_pressed << " Right click: " << right_mouse_button_pressed << std::endl;
 		//std::cout << "Player position: (" << player.position.x << ", " << player.position.y << ", " << player.position.z << ")\n";
+		//std::cout << "CharState: " << player.charState << std::endl;
+		//std::cout << "is blocking: " << player.isBlocking << std::endl;
+		//std::cout << "blend amount: " << player.blendAmount << std::endl;
     }
 
     glfwTerminate();
@@ -103,14 +150,51 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
+	glm::vec3 moveDir(0.0f);
+	bool moved = false;
+
+	// Determine movement direction using camera's orientation
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
+		moveDir += camera.Front;
+	moved = true;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
+		moveDir -= camera.Front;
+	moved = true;
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
+		moveDir -= camera.Right;
+	moved = true;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
+		moveDir += camera.Right;
+	moved = true;
+
+	//if (!moved) return;
+
+	// Normalize to avoid faster diagonal movement
+	if (glm::length(moveDir) > 0.0f)
+		moveDir = glm::normalize(moveDir);
+
+	// Update camera to stay behind character
+	glm::vec3 offset(0.0f, 0.6f, 1.5f); // height and distance
+	glm::vec3 desiredCamPos = charPosition - camera.Front * offset.z + glm::vec3(0.0f, offset.y, 0.0f);
+
+	glm::vec3 correctedCamPos = desiredCamPos;
+
+	camera.Position = correctedCamPos;
+
+	//// Perform raycast to check if something blocks the camera
+	//float hitDist = cameraRaycast(charPosition + glm::vec3(0.0f, offset.y, 0.0f), desiredCamPos, mazeGrid, maze_grid_size);
+
+	//// If blocked, move camera closer
+	//if (hitDist < glm::length(desiredCamPos - charPosition))
+	//{
+	//	glm::vec3 dir = glm::normalize(desiredCamPos - charPosition);
+	//	glm::vec3 newCamPos = charPosition + dir * hitDist;
+	//	camera.Position = newCamPos;
+	//}
+	//else
+	//{
+	//	camera.Position = desiredCamPos;
+	//}
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

@@ -1,0 +1,24 @@
+# Blender 4.5.3 LTS MTL File: 'None'
+# www.blender.org
+
+newmtl Dirt
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd DirtDiffuse.png
+map_Ns DirtRoughness.png
+map_d DirtDiffuse.png
+map_Bump -bm 1.000000 DirtNormal.png
+
+newmtl Grass2
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd Grass2Diffuse.png
+map_Ns Grass2Roughness.png
+map_d Grass2Diffuse.png
+map_Bump -bm 1.000000 Grass2Normal.png

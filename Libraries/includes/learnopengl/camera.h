@@ -111,6 +111,8 @@ public:
             Zoom = 45.0f;
     }
 
+    void FollowPlayer(const glm::vec3& playerPos, float playerYaw);
+
 private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors()
