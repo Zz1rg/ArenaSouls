@@ -129,6 +129,9 @@ int main()
             glm::mat4 view = camera.GetViewMatrix();
             shader.setMat4("projection", projection);
             shader.setMat4("view", view);
+            
+            shader.setVec3("viewPos", camera.Position);
+            shader.setVec3("lightPos", glm::vec3(4.0f, 4.0f, 4.0f));
             //std::cout << "HI";
 
             shader.setBool("useBones", true);
