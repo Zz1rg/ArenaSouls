@@ -135,15 +135,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\LearnOpenGL-master\src\stb_image.cpp" />
-    <ClCompile Include="glad.c" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="player.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="anim_model.fs" />
     <None Include="anim_model.vs" />
     <None Include="git.ignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Libraries\includes\learnopengl\camera.h" />
+    <ClInclude Include="Libraries\includes\Player.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="glad.c" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="player.cpp" />
+    <ClCompile Include="stb_image.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
