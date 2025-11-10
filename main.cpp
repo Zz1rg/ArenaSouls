@@ -89,7 +89,7 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
 		//std::cout << "Left click: " << left_mouse_button_pressed << " Right click: " << right_mouse_button_pressed << std::endl;
-		std::cout << "Player position: (" << player.position.x << ", " << player.position.y << ", " << player.position.z << ")\n";
+		//std::cout << "Player position: (" << player.position.x << ", " << player.position.y << ", " << player.position.z << ")\n";
     }
 
     glfwTerminate();

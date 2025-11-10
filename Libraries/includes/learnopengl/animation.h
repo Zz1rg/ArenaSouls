@@ -26,6 +26,11 @@ public:
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
+		if (!scene || !scene->mRootNode) {
+			std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
+			std::cout << "Failed to load: " << animationPath << std::endl;
+			return;
+		}
 		assert(scene && scene->mRootNode);
 		auto animation = scene->mAnimations[0];
 		m_Duration = animation->mDuration;

@@ -13,7 +13,7 @@ Player::Player()
       idleAnim("resources/objects/mixamo-knight/Sword And Shield Idle/Sword And Shield Idle.dae", &model), //
       walkAnim("resources/objects/mixamo-knight/walk-inplace/Sword And Shield Walk.dae", &model), //
       runAnim("resources/objects/mixamo-knight/run/Sword And Shield Run.dae", &model), //
-      rollAnim("resources/objects/roll-inplace-mixamo/Standing Dive Forward.dae", &model),
+      //rollAnim("resources/objects/roll-inplace-mixamo/Standing Dive Forward.dae", &model),
       attackAnim1("resources/objects/mixamo-knight/Attack1-fast/Sword And Shield Slash.dae", &model), //
       attackAnim2("resources/objects/mixamo-knight/Attack2-fast/Sword And Shield Slash.dae", &model), //
       attackAnim3("resources/objects/mixamo-knight/Attack3-fast/Sword And Shield Slash.dae", &model), //
