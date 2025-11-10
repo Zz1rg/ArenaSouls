@@ -8,6 +8,7 @@
 Player::Player()
     : position(0.0f, -0.6f, 0.0f),
 	  rotation(0.0f, 180.0f, 0.0f),
+      scale(0.6f),
       blendAmount(0.0f),
       blendRate(0.055f),
       charState(IDLE),
@@ -499,7 +500,7 @@ void Player::draw(Shader& shader)
 
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::translate(modelMatrix, position);
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.6f));
+    modelMatrix = glm::scale(modelMatrix, scale);
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     shader.setMat4("model", modelMatrix);
 
@@ -510,3 +511,9 @@ void Player::draw(Shader& shader)
 //{
 //    return position;
 //}
+
+bool Player::isAttacking() const {
+    return charState == ATTACK_1 || charState == ATTACK_2 || charState == ATTACK_3 ||
+           charState == IDLE_ATTACK_1 || charState == CHAIN_ATTACK_2 || charState == CHAIN_ATTACK_3 ||
+           charState == RUN_ATTACK || charState == RUN_ATTACKING || charState == WALK_ATTACK;
+}

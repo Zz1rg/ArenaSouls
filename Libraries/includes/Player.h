@@ -29,6 +29,7 @@ class Player {
 public:
     glm::vec3 position;
     glm::vec3 rotation;
+    glm::vec3 scale;
     float blendAmount;
     float blendRate;
     AnimState charState;
@@ -47,6 +48,9 @@ public:
 	void tryBlock(Animation &transitAnim);
     glm::vec3 getForwardDir();
     //glm::vec3 getPosition();
+
+    // Check if the player is currently attacking
+    bool isAttacking() const;
 };
 
 #endif

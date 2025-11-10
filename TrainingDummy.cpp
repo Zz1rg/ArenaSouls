@@ -1,11 +1,13 @@
 #include "TrainingDummy.h"
+#include "Player.h" // Include Player header for accessing player state
 
 #include <cmath>
 #include <iostream>
 
 TrainingDummy::TrainingDummy()
-    : position(-5.0f, -0.6f, 0.0f),
+    : position(0.0f, -0.6f, -10.0f),
     rotation(0.0f, 0.0f, 0.0f),
+    scale(0.6f),
     blendAmount(0.0f),
     blendRate(0.055f),
     dummyState(DUMMY_IDLE),
@@ -18,24 +20,17 @@ TrainingDummy::TrainingDummy()
     // punchAnim("resources/objects/dummy/punch.dae", &model),
     animator(&idleAnim) {}
 
-TrainingDummy::TrainingDummy(glm::vec3 startPosition)
-    : position(startPosition), 
-    rotation(0.0f, 0.0f, 0.0f),
-    blendAmount(0.0f),
-    blendRate(0.055f),
-    dummyState(DUMMY_IDLE),
-    guardDistance(5.0f),
-    punchDistance(2.0f),
-    model("resources/objects/dummy/Breathing Idle.dae"),
-    idleAnim("resources/objects/dummy/Breathing Idle.dae", &model),
-    animator(&idleAnim) {}
-
 float TrainingDummy::distanceToPlayer(glm::vec3 playerPosition) {
     return glm::length(playerPosition - position);
 }
 
-void TrainingDummy::update(float deltaTime, glm::vec3 playerPosition) {
-    float distance = distanceToPlayer(playerPosition);
+void TrainingDummy::update(float deltaTime, const Player& player) {
+    float distance = distanceToPlayer(player.position);
+
+    // Check if the training dummy is hit by the player
+    if (isHitByPlayer(player)) {
+        std::cout << "Training Dummy was hit during update!" << std::endl;
+    }
 
     switch (dummyState) {
     case DUMMY_IDLE:
@@ -193,9 +188,42 @@ void TrainingDummy::draw(Shader& shader) {
 
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::translate(modelMatrix, position);
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.6f)); // Adjusted scale to match Player
+    modelMatrix = glm::scale(modelMatrix, scale);
     modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Added rotation
     shader.setMat4("model", modelMatrix);
 
     model.Draw(shader);
+}
+
+bool TrainingDummy::isHitByPlayer(const Player& player) {
+    // TODO: Update to use dynamic hitboxes based on player animations
+
+    // Check if the player is in an attack state
+    if (!player.isAttacking()) {
+        return false;
+    }
+
+    // Check for collision between player and training dummy
+    glm::vec3 playerPosition = player.position;
+    glm::vec3 playerScale = player.scale;
+    glm::vec3 dummyScale = scale;
+
+    glm::vec3 playerMin = playerPosition - playerScale * 0.5f;
+    glm::vec3 playerMax = playerPosition + playerScale * 0.5f;
+
+    glm::vec3 dummyMin = position - dummyScale * 0.5f;
+    glm::vec3 dummyMax = position + dummyScale * 0.5f;
+
+    // Check for AABB (Axis-Aligned Bounding Box) collision
+    bool collisionX = playerMax.x >= dummyMin.x && playerMin.x <= dummyMax.x;
+    bool collisionY = playerMax.y >= dummyMin.y && playerMin.y <= dummyMax.y;
+    bool collisionZ = playerMax.z >= dummyMin.z && playerMin.z <= dummyMax.z;
+
+    bool isHit = collisionX && collisionY && collisionZ;
+
+    if (isHit) {
+        std::cout << "Training Dummy got hit by the player!" << std::endl;
+    }
+
+    return isHit;
 }

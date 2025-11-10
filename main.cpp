@@ -89,7 +89,7 @@ int main()
 
     Shader shader("anim_model.vs", "anim_model.fs");
     Player player;
-    TrainingDummy dummy(glm::vec3(0.0f, -0.6f, -10.0f)); // Position dummy 10 units ahead
+    TrainingDummy dummy; // Position dummy 10 units ahead
     //Model arena("resources/objects/arena/maze-grass/obj_export/maze_grass.obj");
     Model arena("resources/objects/arena/obj_v3/arena.obj");
 
@@ -114,7 +114,7 @@ int main()
         }
         charPosition = player.position;
         //camera.FollowPlayer(player.position);
-        dummy.update(deltaTime, player.position);
+        dummy.update(deltaTime, player);
 
         glClearColor(0.817f, 0.9529f, 0.9804f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

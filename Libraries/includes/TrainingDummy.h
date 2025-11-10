@@ -7,6 +7,7 @@
 #include <learnopengl/shader_m.h>
 
 #include <glm/glm.hpp>
+#include "Player.h" // Include Player header for accessing player state
 
 enum DummyState
 {
@@ -24,7 +25,8 @@ class TrainingDummy
 {
 public:
     glm::vec3 position;
-    glm::vec3 rotation; // Added rotation property
+    glm::vec3 rotation;
+    glm::vec3 scale;
     float blendAmount;
     float blendRate;
     DummyState dummyState;
@@ -43,9 +45,12 @@ public:
 
     TrainingDummy();
     TrainingDummy(glm::vec3 startPosition);
-    void update(float deltaTime, glm::vec3 playerPosition);
+    void update(float deltaTime, const Player& player);
     void draw(Shader& shader);
     float distanceToPlayer(glm::vec3 playerPosition);
+
+    // Check if the training dummy is hit by the player
+    bool isHitByPlayer(const Player& player);
 };
 
 #endif
