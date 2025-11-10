@@ -68,6 +68,7 @@ set(MAIN_SOURCES
     player.cpp
     TrainingDummy.cpp
     PlayerCamera.cpp
+    Menu.cpp
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES})

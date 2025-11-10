@@ -3,6 +3,7 @@
 #include <learnopengl/shader_m.h>
 #include "PlayerCamera.h"
 #include "Player.h"
+#include "Menu.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,7 +11,16 @@
 #include <learnopengl/model.h>
 #include "TrainingDummy.h"
 
+enum GameState {
+    GAME_MENU,
+    GAME_ACTIVE
+};
 
+GameState State = GAME_MENU;
+
+struct Application {
+    Menu* menu;
+};
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -63,7 +73,6 @@ int main()
 
     // tell GLFW to capture our mouse
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
     // glad: load all OpenGL function pointers
     // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -72,9 +81,13 @@ int main()
         return -1;
     }
 
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    stbi_set_flip_vertically_on_load(true);
+    Menu menu;
+    Application app;
+    app.menu = &menu;
+    glfwSetWindowUserPointer(window, &app);
 
+    // build and compile shaders
+    // -------------------------
     Shader shader("anim_model.vs", "anim_model.fs");
     Player player;
     TrainingDummy dummy; // Position dummy 10 units ahead
@@ -91,51 +104,65 @@ int main()
 
         processInput(window);
 
-        player.update(deltaTime);
-        player.processInput(window, camera, deltaTime);
-        if (abs(player.position.x) > WALL_X)
+        if (State == GAME_ACTIVE)
         {
-            player.position.x = (player.position.x > 0) ? WALL_X : -WALL_X;
+            glEnable(GL_DEPTH_TEST);
+            player.update(deltaTime);
+            player.processInput(window, camera, deltaTime);
+            if (abs(player.position.x) > WALL_X)
+            {
+                player.position.x = (player.position.x > 0) ? WALL_X : -WALL_X;
+            }
+            if (abs(player.position.z) > WALL_Z)
+            {
+                player.position.z = (player.position.z > 0) ? WALL_Z : -WALL_Z;
+            }
+            charPosition = player.position;
+            //camera.FollowPlayer(player.position);
+            dummy.update(deltaTime, player);
+
+            glClearColor(0.817f, 0.9529f, 0.9804f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            shader.use();
+            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 1000.0f / 800.0f, 0.1f, 100.0f);
+            glm::mat4 view = camera.GetViewMatrix();
+            shader.setMat4("projection", projection);
+            shader.setMat4("view", view);
+            //std::cout << "HI";
+
+            shader.setBool("useBones", true);
+            player.draw(shader);
+            dummy.draw(shader);
+
+            // draw arena
+            shader.setBool("useBones", false);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(0.0f, -1.35f, 0.0f)); // Translate it down so it's at the center of the scene
+            model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f)); // Scale it down
+            shader.setMat4("model", model);
+            arena.Draw(shader);
+
+            glm::vec3 cameraOffset(0.0f, 1.5f, 3.0f); // Adjusted height and distance
+            float panSpeed = 0.05f; // Smooth horizontal panning speed
+            float verticalPanSpeed = 0.05f; // Smooth vertical panning speed
+            if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+                camera.shake(0.2f, 0.1f);
+            }
+            camera.updateShake(deltaTime);
+            camera.FollowPlayerWithOffset(player.position, cameraOffset, panSpeed, verticalPanSpeed);
+            camera.updateShake(deltaTime);
         }
-        if (abs(player.position.z) > WALL_Z)
+        else if (State == GAME_MENU)
         {
-            player.position.z = (player.position.z > 0) ? WALL_Z : -WALL_Z;
+            glDisable(GL_DEPTH_TEST);
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            menu.draw();
         }
-        charPosition = player.position;
-        //camera.FollowPlayer(player.position);
-        dummy.update(deltaTime, player);
 
-        glClearColor(0.817f, 0.9529f, 0.9804f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        shader.use();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 1000.0f / 800.0f, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
-        //std::cout << "HI";
-
-        shader.setBool("useBones", true);
-        player.draw(shader);
-        dummy.draw(shader);
-
-        // draw arena
-        shader.setBool("useBones", false);
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -1.35f, 0.0f)); // Translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f)); // Scale it down
-        shader.setMat4("model", model);
-        arena.Draw(shader);
-
-        glm::vec3 cameraOffset(0.0f, 1.5f, 3.0f); // Adjusted height and distance
-        float panSpeed = 0.05f; // Smooth horizontal panning speed
-        float verticalPanSpeed = 0.05f; // Smooth vertical panning speed
-        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
-            camera.shake(0.2f, 0.1f);
-        }
-        camera.updateShake(deltaTime);
-        camera.FollowPlayerWithOffset(player.position, cameraOffset, panSpeed, verticalPanSpeed);
-        camera.updateShake(deltaTime);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -175,25 +202,42 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if (State == GAME_MENU)
     {
-        // Handle left mouse button press
-        left_mouse_button_pressed = true;
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        {
+            double xpos, ypos;
+            glfwGetCursorPos(window, &xpos, &ypos);
+            Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+            if (app->menu->isStartButtonClicked(xpos, ypos))
+            {
+                State = GAME_ACTIVE;
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            }
+        }
     }
-    else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+    else if (State == GAME_ACTIVE)
     {
-        // Handle left mouse button release
-        left_mouse_button_pressed = false;
-    }
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    {
-        // Handle left mouse button press
-        right_mouse_button_pressed = true;
-    }
-    else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
-    {
-        // Handle left mouse button release
-        right_mouse_button_pressed = false;
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        {
+            // Handle left mouse button press
+            left_mouse_button_pressed = true;
+        }
+        else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+        {
+            // Handle left mouse button release
+            left_mouse_button_pressed = false;
+        }
+        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+        {
+            // Handle left mouse button press
+            right_mouse_button_pressed = true;
+        }
+        else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+        {
+            // Handle left mouse button release
+            right_mouse_button_pressed = false;
+        }
     }
 }
 
