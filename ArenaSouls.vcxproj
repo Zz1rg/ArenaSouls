@@ -141,14 +141,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libraries\includes\learnopengl\camera.h" />
+    <ClInclude Include="Libraries\includes\Menu.h" />
     <ClInclude Include="Libraries\includes\Player.h" />
+    <ClInclude Include="Libraries\includes\PlayerCamera.h" />
+    <ClInclude Include="Libraries\includes\TrainingDummy.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="camera.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="player.cpp" />
+    <ClCompile Include="PlayerCamera.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="TrainingDummy.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

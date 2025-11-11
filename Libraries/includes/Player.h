@@ -22,7 +22,7 @@ enum AnimState {
     RUN_ATTACK,
     RUN_ATTACKING,
 	WALK_ATTACK, WALK_RUN, RUN_WALK,
-	INIT_BLOCK, BLOCK, BLOCK_IDLE, PARRY, BLOCK_WALK
+	INIT_BLOCK, INIT_BLOCK_TO_BLOCK, BLOCK, BLOCK_IDLE, PARRY, BLOCK_WALK, BLOCK_WALKING
 };
 
 class Player {
@@ -54,6 +54,8 @@ public:
 
     // Check if the player is in a blocking state
     bool isBlockingState() const;
+
+    bool isMoving() const;
 };
 
 #endif

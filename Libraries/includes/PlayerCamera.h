@@ -12,9 +12,10 @@ public:
     void ProcessMouseCallback(double xpos, double ypos);
     void ProcessScrollCallback(double yoffset);
     void FollowPlayer(const glm::vec3& playerPosition, const glm::vec3& offset);
-    void FollowPlayerWithOffset(const glm::vec3& playerPosition, const glm::vec3& offset, float panSpeed, float verticalPanSpeed);
+    void FollowPlayerWithOffset(const glm::vec3& playerPosition, const glm::vec3& offset, float panSpeed, float verticalPanSpeed, float deltaTime);
     void updateShake(float deltaTime);
     void shake(float duration, float magnitude);
+    void FollowPlayerSmoothSpring(const glm::vec3& playerPosition, const glm::vec3& offset, float deltaTime);
 
 private:
     bool firstMouse;

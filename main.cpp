@@ -58,7 +58,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "ArenaSouls", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -85,6 +85,8 @@ int main()
     Application app;
     app.menu = &menu;
     glfwSetWindowUserPointer(window, &app);
+
+    stbi_set_flip_vertically_on_load(true);
 
     // build and compile shaders
     // -------------------------
@@ -147,13 +149,15 @@ int main()
             arena.Draw(shader);
 
             glm::vec3 cameraOffset(0.0f, 1.5f, 3.0f); // Adjusted height and distance
-            float panSpeed = 0.05f; // Smooth horizontal panning speed
-            float verticalPanSpeed = 0.05f; // Smooth vertical panning speed
+            float panSpeed = 0.55f; // Smooth horizontal panning speed
+            float verticalPanSpeed = 0.55f; // Smooth vertical panning speed
             if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
                 camera.shake(0.2f, 0.1f);
             }
             camera.updateShake(deltaTime);
-            camera.FollowPlayerWithOffset(player.position, cameraOffset, panSpeed, verticalPanSpeed);
+            camera.FollowPlayerWithOffset(player.position, cameraOffset, panSpeed, verticalPanSpeed, deltaTime);
+            //camera.FollowPlayerSmoothSpring(player.position, cameraOffset, deltaTime);
+
             camera.updateShake(deltaTime);
         }
         else if (State == GAME_MENU)

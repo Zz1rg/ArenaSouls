@@ -1,4 +1,5 @@
 #include "Player.h"
+#include <stb_image.h>
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <iostream>
@@ -29,6 +30,7 @@ Player::Player()
 	  isBlocking(false),
       currentSpeed(0.0f)
 {
+    /*stbi_set_flip_vertically_on_load(true);*/
 }
 
 void Player::processInput(GLFWwindow* window, Camera& camera, float deltaTime)
@@ -56,10 +58,10 @@ void Player::processInput(GLFWwindow* window, Camera& camera, float deltaTime)
         speed = 2.0f;
         break;
     case RUN: case RUN_IDLE: case RUN_WALK: case RUN_ATTACK: case IDLE_RUN:
-        speed = 5.0f;
+        speed = 3.5f;
         break;
-    case BLOCK_WALK:
-        speed = 1.25f;
+    case BLOCK_WALK: case BLOCK_WALKING:
+        speed = 1.75f;
         break;
     default:
         speed = 0.0f;
@@ -88,14 +90,15 @@ void Player::tryBlock(Animation &transitAnim)
     if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || isBlocking)
     {
         isBlocking = true;
-        blendAmount += blendRate;
+        //tryBlocking = true;
+        blendAmount += 0.005f;
         blendAmount = fmod(blendAmount, 1.0f);
         animator.PlayAnimation(&transitAnim, &blockAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
    //     if (blendAmount > 0.9f) {
 			//blendAmount = 0.0f;
 			//float startTime = animator.m_CurrentTime2;
 			////animator.PlayAnimation(&initBlockAnim, NULL, startTime, 0.0f, blendAmount);
-   //         charState = INIT_BLOCK;
+   //         charState = BLOCK;
    //     }
 		charState = BLOCK;
     }
@@ -135,11 +138,6 @@ void Player::update(float deltaTime)
             animator.PlayAnimation(&idleAnim, &rollAnim, animator.m_CurrentTime, 0.0f, blendAmount);
             charState = IDLE_ROLL;
         }*/
-        /*else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_R) == GLFW_PRESS) {
-            blendAmount = 0.0f;
-            animator.PlayAnimation(&idleAnim, &runAnim, animator.m_CurrentTime, 0.0f, blendAmount);
-            charState = IDLE_RUN;
-        }*/
         // if left click attack
         else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             blendAmount = 0.0f;
@@ -166,15 +164,20 @@ void Player::update(float deltaTime)
         animator.PlayAnimation(&walkAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         //position += glm::vec3(0.0f, 0.0f, 1.0f) * walkSpeed * deltaTime;
 		currentSpeed = walkSpeed;
-        if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) != GLFW_PRESS && glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) != GLFW_PRESS &&
-            glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) != GLFW_PRESS && glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) != GLFW_PRESS) {
+        if (!isMoving()) {
             charState = WALK_IDLE;
         }
-        if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
             charState = WALK_RUN;
         }
-        if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             charState = WALK_ATTACK;
+        }
+        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+            blendAmount = 0.0f;
+            isBlocking = true;
+            animator.PlayAnimation(&walkAnim, &blockWalkAnim, animator.m_CurrentTime, 0.0f, blendAmount);
+            charState = BLOCK_WALK;
         }
         break;
 
@@ -218,16 +221,13 @@ void Player::update(float deltaTime)
     case RUN:
 		tryBlock(runAnim);
         animator.PlayAnimation(&runAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-        //position += glm::vec3(0.0f, 0.0f, 1.0f) * runSpeed * deltaTime;
-		//currentSpeed = runSpeed;
-        if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) != GLFW_PRESS && glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) != GLFW_PRESS &&
-            glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) != GLFW_PRESS && glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) != GLFW_PRESS) {
+        if (!isMoving()) {
             charState = RUN_IDLE;
         }
-        if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS) {
+        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS) {
             charState = RUN_WALK;
 		}
-        if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             charState = RUN_ATTACK;
         }
         break;
@@ -263,7 +263,7 @@ void Player::update(float deltaTime)
         if (blendAmount > 0.9f) {
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
-            animator.PlayAnimation(&attackAnim1, NULL, startTime, 0.0f, blendAmount);
+            animator.PlayAnimation(&runAttackAnim, NULL, startTime, 0.0f, blendAmount);
             charState = RUN_ATTACKING;
         }
         break;
@@ -272,7 +272,7 @@ void Player::update(float deltaTime)
         blendAmount += blendRate;
         blendAmount = fmod(blendAmount, 1.0f);
         animator.PlayAnimation(&runAttackAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-        //position += getForwardDir() * runningAttackSpeed * deltaTime;
+
         if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             chain = true;
         }
@@ -281,10 +281,7 @@ void Player::update(float deltaTime)
             float startTime = animator.m_CurrentTime2;
 
             // update character pos first
-			/*position += getForwardDir() * 1.69f;
-
-            postAttackTargetPos = position + getForwardDir() * 1.69f;
-            isPostAttackMoving = true;*/
+			position += getForwardDir() * 1.69f;
 
             if (chain) {
                 animator.PlayAnimation(&runAttackAnim, &attackAnim3, startTime, 0.0f, blendAmount);
@@ -339,8 +336,6 @@ void Player::update(float deltaTime)
 
     case ATTACK_1:
 		tryBlock(attackAnim1);
-        blendAmount += blendRate;
-        blendAmount = fmod(blendAmount, 1.0f);
         animator.PlayAnimation(&attackAnim1, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             chain = true;
@@ -348,6 +343,7 @@ void Player::update(float deltaTime)
         if (animator.m_CurrentTime > attackAnim1.GetDuration() - 0.1f) {
             float startTime = animator.m_CurrentTime2;
             if (chain) {
+                blendAmount = 0.0f;
                 animator.PlayAnimation(&attackAnim1, &attackAnim2, startTime, 0.0f, blendAmount);
                 charState = CHAIN_ATTACK_2;
                 chain = false;
@@ -373,8 +369,9 @@ void Player::update(float deltaTime)
         break;
 
     case ATTACK_2:
-        blendAmount += blendRate;
-        blendAmount = fmod(blendAmount, 1.0f);
+        tryBlock(attackAnim2);
+        /*blendAmount += blendRate;
+        blendAmount = fmod(blendAmount, 1.0f);*/
         animator.PlayAnimation(&attackAnim2, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             chain = true;
@@ -383,7 +380,7 @@ void Player::update(float deltaTime)
             float startTime = animator.m_CurrentTime2;
 
             if (chain) {
-                animator.PlayAnimation(&attackAnim1, &attackAnim2, startTime, 0.0f, blendAmount);
+                animator.PlayAnimation(&attackAnim2, &attackAnim3, startTime, 0.0f, blendAmount);
                 charState = CHAIN_ATTACK_3;
                 chain = false;
             }
@@ -407,16 +404,14 @@ void Player::update(float deltaTime)
         }
 
     case ATTACK_3:
-        blendAmount += blendRate;
-        blendAmount = fmod(blendAmount, 1.0f);
+        /*blendAmount += blendRate;
+        blendAmount = fmod(blendAmount, 1.0f);*/
         animator.PlayAnimation(&attackAnim3, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
 		position += getForwardDir() * attack3Speed * deltaTime;
         if (animator.m_CurrentTime > attackAnim3.GetDuration() - 0.1f) {
             //blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
-   //         isPostAttackMoving = true;
-			//postAttackTargetPos = position + getForwardDir() * 0.74f; // small forward movement on attack end
-   //         position += glm::vec3(0.0f, 0.0f, 1.0f) * 0.74f; // small forward movement on attack end
+            position += getForwardDir() * 0.74f; // small forward movement on attack end
             animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);
             charState = ATTACK_3_IDLE;
         }
@@ -435,18 +430,34 @@ void Player::update(float deltaTime)
         }
         break;
 
-    /*case INIT_BLOCK:
-        blendAmount = 0.0f;
-        animator.PlayAnimation(&initBlockAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-        if (animator.m_CurrentTime > initBlockAnim.GetDuration() - 0.1) {
-            float startTime = animator.m_CurrentTime2;
-            animator.PlayAnimation(&initBlockAnim, &blockAnim, startTime, 0.0f, blendAmount);
-            charState = BLOCK;
-        }
-        break;*/
+    //case INIT_BLOCK:
+    //    blendAmount = 0.0f;
+    //    animator.PlayAnimation(&initBlockAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+    //    if (animator.m_CurrentTime > initBlockAnim.GetDuration() - 0.1) {
+    //        float startTime = animator.m_CurrentTime2;
+    //        animator.PlayAnimation(&initBlockAnim, &blockAnim, startTime, 0.0f, blendAmount);
+    //        charState = BLOCK;
+    //    }
+    //    break;
+
+    //case INIT_BLOCK_TO_BLOCK:
+    //    blendAmount += blendRate;
+    //    blendAmount = fmod(blendAmount, 1.0f);
+    //    animator.PlayAnimation(&idleAnim, &attackAnim1, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+    //    if (blendAmount > 0.9f) {
+    //        blendAmount = 0.0f;
+    //        float startTime = animator.m_CurrentTime2;
+    //        animator.PlayAnimation(&attackAnim1, NULL, startTime, 0.0f, blendAmount);
+    //        charState = ATTACK_1;
+    //    }
+    //    break;
+
 
     case BLOCK:
+        blendAmount += blendRate;
+        blendAmount = fmod(blendAmount, 1.0f);
         animator.PlayAnimation(&blockAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+
         if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) != GLFW_PRESS) {
             blendAmount = 0.0f;
             isBlocking = false;
@@ -454,8 +465,8 @@ void Player::update(float deltaTime)
             animator.PlayAnimation(&blockAnim, &idleAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
             charState = BLOCK_IDLE;
 		}
-		else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) == GLFW_PRESS ||
-            glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) == GLFW_PRESS) {
+
+        else if (isMoving()) {
 			blendAmount = 0.0f;
 			animator.PlayAnimation(&blockAnim, &blockWalkAnim, animator.m_CurrentTime, 0.0f, blendAmount);
 			charState = BLOCK_WALK;
@@ -463,15 +474,29 @@ void Player::update(float deltaTime)
         break;
 
     case BLOCK_WALK:
+        blendAmount += blendRate;
+        blendAmount = fmod(blendAmount, 1.0f);
+        animator.PlayAnimation(&blockAnim, &blockWalkAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+        if (blendAmount > 0.9f) {
+            blendAmount = 0.0f;
+            float startTime = animator.m_CurrentTime2;
+            animator.PlayAnimation(&blockWalkAnim, NULL, startTime, 0.0f, blendAmount);
+            charState = BLOCK_WALKING;
+        }
+        break;
+
+    case BLOCK_WALKING:
         animator.PlayAnimation(&blockWalkAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-        position += glm::vec3(0.0f, 0.0f, 1.0f) * blockSpeed * deltaTime;
-		//currentSpeed = blockSpeed;
-        if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) != GLFW_PRESS && glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) != GLFW_PRESS &&
-            glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) != GLFW_PRESS && glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) != GLFW_PRESS) {
+
+        if (!isMoving()) {
             charState = BLOCK;
         }
-        if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-            charState = WALK_ATTACK;
+        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) != GLFW_PRESS) {
+            blendAmount = 0.0f;
+            isBlocking = false;
+            float startTime = animator.m_CurrentTime2;
+            animator.PlayAnimation(&blockWalkAnim, &idleAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+            charState = IDLE;
         }
         break;
         
@@ -520,4 +545,9 @@ bool Player::isAttacking() const {
 
 bool Player::isBlockingState() const {
     return charState == BLOCK || charState == BLOCK_WALK || charState == BLOCK_IDLE || isBlocking;
+}
+
+bool Player::isMoving() const {
+    return glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) == GLFW_PRESS ||
+           glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) == GLFW_PRESS;
 }
