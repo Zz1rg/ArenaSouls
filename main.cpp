@@ -149,8 +149,8 @@ int main()
             arena.Draw(shader);
 
             glm::vec3 cameraOffset(0.0f, 1.5f, 3.0f); // Adjusted height and distance
-            float panSpeed = 0.55f; // Smooth horizontal panning speed
-            float verticalPanSpeed = 0.55f; // Smooth vertical panning speed
+            float panSpeed = 0.5f; // Smooth horizontal panning speed
+            float verticalPanSpeed = 0.5f; // Smooth vertical panning speed
             if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
                 camera.shake(0.2f, 0.1f);
             }
@@ -175,7 +175,7 @@ int main()
         glfwPollEvents();
         //std::cout << "Left click: " << left_mouse_button_pressed << " Right click: " << right_mouse_button_pressed << std::endl;
         //std::cout << "Player position: (" << player.position.x << ", " << player.position.y << ", " << player.position.z << ")\n";
-        //std::cout << "CharState: " << player.charState << std::endl;
+        std::cout << "CharState: " << player.charState << std::endl;
         //std::cout << "is blocking: " << player.isBlocking << std::endl;
         //std::cout << "blend amount: " << player.blendAmount << std::endl;
     }
