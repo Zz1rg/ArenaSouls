@@ -219,6 +219,13 @@ void SoundEngine::loadGameAssets() {
         footstepPaths.push_back(basePath + "footstep.wav");
     }
     loadSoundWithPaths("footstep", footstepPaths);
+
+    // Footstep fast sounds
+    std::vector<std::string> footstepFastPaths;
+    for (const auto& basePath : basePaths) {
+        footstepFastPaths.push_back(basePath + "footstep_fast.wav");
+    }
+    loadSoundWithPaths("footstep_fast", footstepFastPaths);
     
     // Sword attack sounds
     std::vector<std::string> swordPaths;

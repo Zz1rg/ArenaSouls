@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "SoundEngine.h"
 #include <stb_image.h>
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -34,7 +35,8 @@ Player::Player()
 	  blockWalkAnim("resources/objects/mixamo-knight/block-walk/Sword And Shield Strafe.dae", &model), //
       animator(&idleAnim),
       chain(false),
-	  isBlocking(false)
+	  isBlocking(false),
+      soundEngine(nullptr)
 {
     /*stbi_set_flip_vertically_on_load(true);*/
 }
@@ -62,6 +64,10 @@ void Player::processInput(GLFWwindow* window, Camera& camera, float deltaTime)
     {
     case WALK: case WALK_IDLE: case WALK_ATTACK: case WALK_RUN: case IDLE_WALK:
         speed = 2.0f;
+        // Play footstep sound for walking
+        if (glm::length(moveDir) > 0.0f && soundEngine && !soundEngine->isSoundPlaying("footstep")) {
+            soundEngine->playSound("footstep");
+        }
         break;
     case RUN: case RUN_IDLE: case RUN_WALK: case RUN_ATTACK: case IDLE_RUN:
         // Force transition to walk if stamina is depleted
@@ -75,6 +81,11 @@ void Player::processInput(GLFWwindow* window, Camera& camera, float deltaTime)
                 stamina -= 20.0f * deltaTime;
                 if (stamina < 0.0f) stamina = 0.0f;
                 lastStaminaUse = glfwGetTime();
+                
+                // Play footstep sound for running (faster pace than walking)
+                if (soundEngine && !soundEngine->isSoundPlaying("footstep_fast")) {
+                    soundEngine->playSound("footstep_fast");
+                }
             }
         }
         break;
@@ -117,6 +128,15 @@ void Player::tryBlock()
 {
     if ((glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || isBlocking) && stamina > 0.0f)
     {
+        // Stop movement sounds when blocking
+        if (!isBlocking && soundEngine) {
+            soundEngine->stopSound("footstep");
+            soundEngine->stopSound("footstep_fast");
+        }
+        // Play block sound when starting to block
+        // if (!isBlocking && soundEngine) {
+        //     soundEngine->playSound("block");
+        // }
         isBlocking = true;
         //charState = BLOCK;
         charState = INIT_BLOCK;
@@ -127,6 +147,12 @@ void Player::tryDodge()
 {
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS && stamina > 0.0f)
     {
+        // Stop movement sounds when dodging
+        if (soundEngine) {
+            soundEngine->stopSound("footstep");
+            soundEngine->stopSound("footstep_fast");
+            soundEngine->playSound("dodge");
+        }
         charState = START_DODGE;
     }
 }
@@ -148,6 +174,10 @@ void Player::updateStamina(float deltaTime) {
     }
 }
 
+void Player::setSoundEngine(SoundEngine* engine) {
+    soundEngine = engine;
+}
+
 float chainWindowStart = 0.6f;
 
 void Player::update(float deltaTime)
@@ -160,6 +190,11 @@ void Player::update(float deltaTime)
     switch (charState) {
     case IDLE:
         currentAnim = &idleAnim;
+        // Stop any movement sounds that might be playing
+        if (soundEngine) {
+            soundEngine->stopSound("footstep");
+            soundEngine->stopSound("footstep_fast");
+        }
 		tryBlock();
         tryDodge();
         animator.PlayAnimation(&idleAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
@@ -208,19 +243,31 @@ void Player::update(float deltaTime)
         if (!isMoving()) {
             blendAmount = 0.0f;
             charState = WALK_IDLE;
+            if (soundEngine) {
+                soundEngine->stopSound("footstep");
+            }
         }
         else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && stamina > 0.0f) {
             blendAmount = 0.0f;
             charState = WALK_RUN;
+            if (soundEngine) {
+                soundEngine->stopSound("footstep");
+            }
         }
         else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && stamina > 0.0f) {
             blendAmount = 0.0f;
             charState = WALK_ATTACK;
+            if (soundEngine) {
+                soundEngine->stopSound("footstep");
+            }
         }
         else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && stamina > 0.0f) {
             blendAmount = 0.0f;
             isBlocking = true;
             charState = BLOCK_WALK;
+            if (soundEngine) {
+                soundEngine->stopSound("footstep");
+            }
         }
         break;
 
@@ -232,6 +279,11 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);
+            // Ensure all movement sounds are stopped when going to IDLE
+            if (soundEngine) {
+                soundEngine->stopSound("footstep");
+                soundEngine->stopSound("footstep_fast");
+            }
             charState = IDLE;
         }
         break;
@@ -244,6 +296,14 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&attackAnim1, NULL, startTime, 0.0f, blendAmount);
+            // Play sword attack sound
+            if (soundEngine) {
+                soundEngine->playSound("sword_hit");
+            }
+            // Stop walking sounds when attacking
+            if (soundEngine) {
+                soundEngine->stopSound("footstep");
+            }
             // Consume stamina
             stamina -= attackStaminaCost;
             if (stamina < 0.0f) stamina = 0.0f;
@@ -273,14 +333,23 @@ void Player::update(float deltaTime)
         if (!isMoving()) {
             blendAmount = 0.0f;
             charState = RUN_IDLE;
+            if (soundEngine) {
+                soundEngine->stopSound("footstep_fast");
+            }
         }
         else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS) {
             blendAmount = 0.0f;
             charState = RUN_WALK;
+            if (soundEngine) {
+                soundEngine->stopSound("footstep_fast");
+            }
 		}
         else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             blendAmount = 0.0f;
             charState = RUN_ATTACK;
+            if (soundEngine) {
+                soundEngine->stopSound("footstep_fast");
+            }
         }
         break;
 
@@ -292,6 +361,11 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);
+            // Ensure all movement sounds are stopped when going to IDLE
+            if (soundEngine) {
+                soundEngine->stopSound("footstep");
+                soundEngine->stopSound("footstep_fast");
+            }
             charState = IDLE;
         }
         break;
@@ -304,6 +378,10 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&walkAnim, NULL, startTime, 0.0f, blendAmount);
+            // Stop fast footsteps when transitioning to walk
+            if (soundEngine) {
+                soundEngine->stopSound("footstep_fast");
+            }
             charState = WALK;
         }
         break;
@@ -316,6 +394,14 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&runAttackAnim, NULL, startTime, 0.0f, blendAmount);
+            // Play sword attack sound
+            if (soundEngine) {
+                soundEngine->playSound("sword_hit");
+            }
+            // Stop running sounds when attacking
+            if (soundEngine) {
+                soundEngine->stopSound("footstep_fast");
+            }
             // Consume stamina
             stamina -= runAttackStaminaCost;
             if (stamina < 0.0f) stamina = 0.0f;
@@ -392,6 +478,10 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&attackAnim1, NULL, startTime, 0.0f, blendAmount);
+            // Play sword attack sound
+            if (soundEngine) {
+                soundEngine->playSound("sword_hit");
+            }
             charState = ATTACK_1;
         }
         break;
@@ -431,6 +521,10 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&attackAnim2, NULL, startTime, 0.0f, blendAmount);
+            // Play sword attack sound
+            if (soundEngine) {
+                soundEngine->playSound("sword_hit");
+            }
             charState = ATTACK_2;
         }
         break;
@@ -473,6 +567,10 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&attackAnim3, NULL, startTime, 0.0f, blendAmount);
+            // Play sword attack sound
+            if (soundEngine) {
+                soundEngine->playSound("sword_hit");
+            }
             charState = ATTACK_3;
         }
         break;
@@ -566,6 +664,9 @@ void Player::update(float deltaTime)
 
 
     case BLOCK:
+        if (soundEngine) {
+            soundEngine->stopSound("footstep");
+        }
         blendAmount += blendRate;
         blendAmount = fmod(blendAmount, 1.0f);
         animator.PlayAnimation(&blockAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
@@ -586,6 +687,9 @@ void Player::update(float deltaTime)
         break;
 
     case BLOCK_WALK:
+        if (soundEngine && !soundEngine->isSoundPlaying("footstep")) {
+            soundEngine->playSound("footstep");
+        }
         blendAmount += blendRate;
         blendAmount = fmod(blendAmount, 1.0f);
         animator.PlayAnimation(&blockAnim, &blockWalkAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
@@ -599,6 +703,9 @@ void Player::update(float deltaTime)
 
     case BLOCK_WALKING:
         animator.PlayAnimation(&blockWalkAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+        if (soundEngine && !soundEngine->isSoundPlaying("footstep")) {
+            soundEngine->playSound("footstep");
+        }
 
         if (!isMoving()) {
             charState = BLOCK;

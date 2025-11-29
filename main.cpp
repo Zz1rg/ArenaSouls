@@ -108,6 +108,7 @@ int main()
     // -------------------------
     Shader shader("anim_model.vs", "anim_model.fs");
     Player player;
+    player.setSoundEngine(&soundEngine);
     TrainingDummy dummy; // Position dummy 10 units ahead
     //Model arena("resources/objects/arena/maze-grass/obj_export/maze_grass.obj");
     Model arena("resources/objects/arena/obj_v3/arena.obj");

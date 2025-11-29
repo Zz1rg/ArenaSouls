@@ -9,6 +9,9 @@
 #include <learnopengl/shader_m.h>
 #include <learnopengl/camera.h>
 
+// Forward declaration
+class SoundEngine;
+
 enum AnimState {
     IDLE = 1,
     IDLE_WALK, WALK_IDLE, WALK,
@@ -48,6 +51,7 @@ public:
     Animator animator;
     bool chain;
 	bool isBlocking;
+    SoundEngine* soundEngine; // Pointer to sound engine
 
     Player();
     void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
@@ -56,6 +60,7 @@ public:
     void tryBlock();
     void tryDodge();
     void updateStamina(float deltaTime);
+    void setSoundEngine(SoundEngine* engine);
     glm::vec3 getForwardDir();
     //glm::vec3 getPosition();
 
