@@ -33,6 +33,8 @@ Player::Player()
 	  initBlockAnim("resources/objects/mixamo-knight/init-block/Sword And Shield Block.dae", &model), //
 	  blockAnim("resources/objects/mixamo-knight/block/Sword And Shield Block Idle.dae", &model), //
 	  blockWalkAnim("resources/objects/mixamo-knight/block-walk/Sword And Shield Strafe.dae", &model), //
+      parryAnim("resources/objects/mixamo-knight/parry/Sword And Shield Impact.dae", &model), //
+      isHitAnim("resources/objects/mixamo-knight/is-hit/Sword And Shield Impact.dae", &model), //
       animator(&idleAnim),
       chain(false),
 	  isBlocking(false),
@@ -220,6 +222,20 @@ void Player::update(float deltaTime)
         else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_J) == GLFW_PRESS) {
             health += 10; // Increase health for testing
             if (health > maxHealth) health = maxHealth;
+        }
+
+        // Test keys for parry and hit reactions
+        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_P) == GLFW_PRESS) {
+            blendAmount = 0.0f;
+            float startTime = animator.m_CurrentTime2;
+            animator.PlayAnimation(&idleAnim, &parryAnim, startTime, 0.0f, blendAmount);
+            charState = PARRY;
+        }
+        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_I) == GLFW_PRESS) {
+            blendAmount = 0.0f;
+            float startTime = animator.m_CurrentTime2;
+            animator.PlayAnimation(&idleAnim, &isHitAnim, startTime, 0.0f, blendAmount);
+            charState = IS_HIT;
         }
         break;
 
@@ -726,6 +742,28 @@ void Player::update(float deltaTime)
         isBlocking = false;
         animator.PlayAnimation(&blockAnim, &idleAnim, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (blendAmount > 0.9f) {
+            blendAmount = 0.0f;
+            float startTime = animator.m_CurrentTime2;
+            animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);
+            charState = IDLE;
+        }
+        break;
+
+    case PARRY:
+        animator.PlayAnimation(&parryAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+        isBlocking = false;
+        if (animator.m_CurrentTime > parryAnim.GetDuration() - 0.1f) {
+            blendAmount = 0.0f;
+            float startTime = animator.m_CurrentTime2;
+            animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);
+            charState = IDLE;
+        }
+        break;
+
+    case IS_HIT:
+        animator.PlayAnimation(&isHitAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+        isBlocking = false;
+        if (animator.m_CurrentTime > isHitAnim.GetDuration() - 0.1f) {
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);

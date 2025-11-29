@@ -25,7 +25,8 @@ enum AnimState {
     RUN_ATTACKING,
 	WALK_ATTACK, WALK_RUN, RUN_WALK,
 	INIT_BLOCK, INIT_BLOCKING, INIT_BLOCK_TO_BLOCK, INIT_BLOCK_IDLE,
-    BLOCK, BLOCK_IDLE, PARRY, BLOCK_WALK, BLOCK_WALKING
+    BLOCK, BLOCK_IDLE, PARRY, BLOCK_WALK, BLOCK_WALKING,
+    IS_HIT
 };
 
 class Player {
@@ -46,7 +47,7 @@ public:
     float lastStaminaUse;
 
     Model model;
-    Animation idleAnim, walkAnim, runAnim, dodgeAnim, attackAnim1, attackAnim2, attackAnim3, runAttackAnim, initBlockAnim, blockAnim, parryAnim, blockWalkAnim;
+    Animation idleAnim, walkAnim, runAnim, dodgeAnim, attackAnim1, attackAnim2, attackAnim3, runAttackAnim, initBlockAnim, blockAnim, parryAnim, blockWalkAnim, isHitAnim;
     Animation *currentAnim;
     Animator animator;
     bool chain;
