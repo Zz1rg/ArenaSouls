@@ -55,9 +55,6 @@ glm::vec3 charPosition(0.0f, 0.0f, 0.0f);
 // UI system
 UI ui;
 
-// Menu music
-sf::Music menuMusic;
-
 int main()
 {
     // glfw: initialize and configure
