@@ -138,6 +138,8 @@
     <None Include="anim_model.fs" />
     <None Include="anim_model.vs" />
     <None Include="git.ignore" />
+    <None Include="ui.fs" />
+    <None Include="ui.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Libraries\includes\learnopengl\camera.h" />
@@ -145,6 +147,7 @@
     <ClInclude Include="Libraries\includes\Player.h" />
     <ClInclude Include="Libraries\includes\PlayerCamera.h" />
     <ClInclude Include="Libraries\includes\TrainingDummy.h" />
+    <ClInclude Include="Libraries\includes\UI.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c" />
@@ -154,6 +157,7 @@
     <ClCompile Include="PlayerCamera.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="TrainingDummy.cpp" />
+    <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

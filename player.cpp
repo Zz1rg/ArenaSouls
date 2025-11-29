@@ -7,7 +7,14 @@
 #include <algorithm>
 
 Player::Player()
-    : position(0.0f, -0.6f, 0.0f),
+    : health(100),
+      stamina(100.0f),
+      maxHealth(100),
+      maxStamina(100.0f),
+      staminaRegenRate(25.0f),
+      staminaRegenDelay(2.0f),
+      lastStaminaUse(0.0f),
+      position(0.0f, -0.6f, 0.0f),
 	  rotation(0.0f, 180.0f, 0.0f),
       scale(0.6f),
       blendAmount(0.0f),
@@ -49,7 +56,7 @@ void Player::processInput(GLFWwindow* window, Camera& camera, float deltaTime)
     if (glm::length(moveDir) > 0.0f)
         moveDir = glm::normalize(moveDir);
 
-    // --- Determine speed based on state ---
+    // --- Determine speed based on state and consume stamina ---
     float speed = 0.0f;
     switch (charState)
     {
@@ -57,15 +64,37 @@ void Player::processInput(GLFWwindow* window, Camera& camera, float deltaTime)
         speed = 2.0f;
         break;
     case RUN: case RUN_IDLE: case RUN_WALK: case RUN_ATTACK: case IDLE_RUN:
-        speed = 3.5f;
+        // Force transition to walk if stamina is depleted
+        if (stamina <= 0.0f && charState == RUN) {
+            speed = 2.0f;
+            charState = RUN_WALK; // Transition back to walk
+        } else {
+            speed = 3.5f;
+            // Only consume stamina when actually moving
+            if (glm::length(moveDir) > 0.0f) {
+                stamina -= 20.0f * deltaTime;
+                if (stamina < 0.0f) stamina = 0.0f;
+                lastStaminaUse = glfwGetTime();
+            }
+        }
         break;
     case BLOCK_WALK: case BLOCK_WALKING:
         speed = 1.75f;
+        // Consume stamina while blocking
+        stamina -= 5.0f * deltaTime; // Light stamina drain for blocking
+        if (stamina < 0.0f) {
+            stamina = 0.0f;
+            isBlocking = false; // Stop blocking when out of stamina
+        }
+        lastStaminaUse = glfwGetTime();
         break;
     default:
         speed = 0.0f;
         break;
     }
+    
+    // Update stamina regeneration
+    updateStamina(deltaTime);
 
     // --- Camera-relative movement ---
     glm::vec3 camForward = camera.Front;
@@ -86,7 +115,7 @@ void Player::processInput(GLFWwindow* window, Camera& camera, float deltaTime)
 
 void Player::tryBlock()
 {
-    if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || isBlocking)
+    if ((glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || isBlocking) && stamina > 0.0f)
     {
         isBlocking = true;
         //charState = BLOCK;
@@ -96,7 +125,7 @@ void Player::tryBlock()
 
 void Player::tryDodge()
 {
-    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS)
+    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS && stamina > 0.0f)
     {
         charState = START_DODGE;
     }
@@ -110,17 +139,27 @@ glm::vec3 Player::getForwardDir() {
     ));
 }
 
+void Player::updateStamina(float deltaTime) {
+    // Regenerate stamina if we haven't used it recently
+    float currentTime = glfwGetTime();
+    if (currentTime - lastStaminaUse > staminaRegenDelay && stamina < maxStamina) {
+        stamina += staminaRegenRate * deltaTime;
+        if (stamina > maxStamina) stamina = maxStamina;
+    }
+}
+
 float chainWindowStart = 0.6f;
 
 void Player::update(float deltaTime)
 {
 
-    Animation* sourceAnim = getSourceAnimationForBlock(prevState);
+    float attackStaminaCost = 10.0f;
+    float runAttackStaminaCost = 12.5f;
+    float dodgeStaminaCost = 10.0f;
 
     switch (charState) {
     case IDLE:
         currentAnim = &idleAnim;
-        prevState = IDLE;
 		tryBlock();
         tryDodge();
         animator.PlayAnimation(&idleAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
@@ -131,12 +170,21 @@ void Player::update(float deltaTime)
             animator.PlayAnimation(&idleAnim, &walkAnim, startTime, 0.0f, blendAmount);
             charState = IDLE_WALK;
         }
-        // if left click attack
-        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        // if left click attack (only if stamina > 0)
+        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && stamina > 0.0f) {
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&idleAnim, &attackAnim1, startTime, 0.0f, blendAmount);
             charState = IDLE_ATTACK_1;
+        }
+        // Test keys for health/stamina (for debugging)
+        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_H) == GLFW_PRESS) {
+            health -= 10; // Decrease health for testing
+            if (health < 0) health = 0;
+        }
+        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_J) == GLFW_PRESS) {
+            health += 10; // Increase health for testing
+            if (health > maxHealth) health = maxHealth;
         }
         break;
 
@@ -154,7 +202,6 @@ void Player::update(float deltaTime)
 
     case WALK:
         currentAnim = &walkAnim;
-        prevState = WALK;
 		tryBlock();
         tryDodge();
         animator.PlayAnimation(&walkAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
@@ -162,15 +209,15 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             charState = WALK_IDLE;
         }
-        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && stamina > 0.0f) {
             blendAmount = 0.0f;
             charState = WALK_RUN;
         }
-        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && stamina > 0.0f) {
             blendAmount = 0.0f;
             charState = WALK_ATTACK;
         }
-        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && stamina > 0.0f) {
             blendAmount = 0.0f;
             isBlocking = true;
             charState = BLOCK_WALK;
@@ -197,6 +244,10 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&attackAnim1, NULL, startTime, 0.0f, blendAmount);
+            // Consume stamina
+            stamina -= attackStaminaCost;
+            if (stamina < 0.0f) stamina = 0.0f;
+            lastStaminaUse = glfwGetTime();
             charState = ATTACK_1;
         }
         break;
@@ -216,7 +267,6 @@ void Player::update(float deltaTime)
 
     case RUN:
         currentAnim = &runAnim;
-        prevState = RUN;
 		tryBlock();
         tryDodge();
         animator.PlayAnimation(&runAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
@@ -266,6 +316,10 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&runAttackAnim, NULL, startTime, 0.0f, blendAmount);
+            // Consume stamina
+            stamina -= runAttackStaminaCost;
+            if (stamina < 0.0f) stamina = 0.0f;
+            lastStaminaUse = glfwGetTime();
             charState = RUN_ATTACKING;
         }
         break;
@@ -307,6 +361,10 @@ void Player::update(float deltaTime)
             blendAmount = 0.0f;
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&dodgeAnim, NULL, startTime, 0.0f, blendAmount);
+            // Consume stamina
+            stamina -= dodgeStaminaCost;
+            if (stamina < 0.0f) stamina = 0.0f;
+            lastStaminaUse = glfwGetTime();
             charState = DODGE_END;
         }
         break;
@@ -340,16 +398,19 @@ void Player::update(float deltaTime)
 
     case ATTACK_1:
         currentAnim = &attackAnim1;
-        prevState = ATTACK_1;
 		tryBlock();
         tryDodge(); 
         animator.PlayAnimation(&attackAnim1, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-        if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && stamina > 0.0f) {
             chain = true;
         }
         if (animator.m_CurrentTime > attackAnim1.GetDuration() - 0.1f) {
             float startTime = animator.m_CurrentTime2;
             blendAmount = 0.0f;
+            // Consume stamina 
+            stamina -= attackStaminaCost;
+            if (stamina < 0.0f) stamina = 0.0f;
+            lastStaminaUse = glfwGetTime();
             if (chain) {
                 animator.PlayAnimation(&attackAnim1, &attackAnim2, startTime, 0.0f, blendAmount);
                 charState = CHAIN_ATTACK_2;
@@ -376,16 +437,20 @@ void Player::update(float deltaTime)
 
     case ATTACK_2:
         currentAnim = &attackAnim2;
-        prevState = ATTACK_2;
         tryBlock();
         tryDodge();
 
         animator.PlayAnimation(&attackAnim2, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-        if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && stamina > 0.0f) {
             chain = true;
         }
         if (animator.m_CurrentTime > attackAnim2.GetDuration() - 0.1f) {
             float startTime = animator.m_CurrentTime2;
+
+            // Consume stamina
+            stamina -= attackStaminaCost;
+            if (stamina < 0.0f) stamina = 0.0f;
+            lastStaminaUse = glfwGetTime();
 
             if (chain) {
                 animator.PlayAnimation(&attackAnim2, &attackAnim3, startTime, 0.0f, blendAmount);
@@ -419,6 +484,10 @@ void Player::update(float deltaTime)
             float startTime = animator.m_CurrentTime2;
             position += getForwardDir() * 0.74f; // small forward movement on attack end
             animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);
+            // Consume stamina 
+            stamina -= attackStaminaCost;
+            if (stamina < 0.0f) stamina = 0.0f;
+            lastStaminaUse = glfwGetTime();
             charState = ATTACK_3_IDLE;
         }
         break;
@@ -594,17 +663,4 @@ bool Player::isBlockingState() const {
 bool Player::isMoving() const {
     return glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) == GLFW_PRESS ||
            glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) == GLFW_PRESS;
-}
-
-Animation* Player::getSourceAnimationForBlock(AnimState prevState) {
-    switch (prevState) {
-        case IDLE: return &idleAnim;
-        case WALK: return &walkAnim;
-        case RUN: return &runAnim;
-        case ATTACK_1: return &attackAnim1;
-        case ATTACK_2: return &attackAnim2;
-        case ATTACK_3: return &attackAnim3;
-        // Add other cases as needed
-        default: return &idleAnim; // Safe fallback
-    }
 }

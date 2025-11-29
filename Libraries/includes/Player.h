@@ -33,7 +33,14 @@ public:
     float blendAmount;
     float blendRate;
     AnimState charState;
-    AnimState prevState;
+
+    int health;
+    float stamina;
+    int maxHealth;
+    float maxStamina;
+    float staminaRegenRate;
+    float staminaRegenDelay;
+    float lastStaminaUse;
 
     Model model;
     Animation idleAnim, walkAnim, runAnim, dodgeAnim, attackAnim1, attackAnim2, attackAnim3, runAttackAnim, initBlockAnim, blockAnim, parryAnim, blockWalkAnim;
@@ -46,9 +53,9 @@ public:
     void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
     void update(float deltaTime);
     void draw(Shader& shader);
-    Animation* getSourceAnimationForBlock(AnimState prevState);
     void tryBlock();
     void tryDodge();
+    void updateStamina(float deltaTime);
     glm::vec3 getForwardDir();
     //glm::vec3 getPosition();
 

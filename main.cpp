@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <learnopengl/model.h>
 #include "TrainingDummy.h"
+#include "UI.h"
 
 enum GameState {
     GAME_MENU,
@@ -46,6 +47,9 @@ const float WALL_Z = 17.5f;
 
 // character position for camera raycasting
 glm::vec3 charPosition(0.0f, 0.0f, 0.0f);
+
+// UI system
+UI ui;
 
 int main()
 {
@@ -87,6 +91,9 @@ int main()
     glfwSetWindowUserPointer(window, &app);
 
     stbi_set_flip_vertically_on_load(true);
+
+    // Initialize UI system
+    ui.initialize(SCR_WIDTH, SCR_HEIGHT);
 
     // build and compile shaders
     // -------------------------
@@ -149,8 +156,8 @@ int main()
             arena.Draw(shader);
 
             glm::vec3 cameraOffset(0.0f, 1.5f, 3.0f); // Adjusted height and distance
-            float panSpeed = 0.5f; // Smooth horizontal panning speed
-            float verticalPanSpeed = 0.5f; // Smooth vertical panning speed
+            float panSpeed = 1.0f; // Smooth horizontal panning speed
+            float verticalPanSpeed = 1.0f; // Smooth vertical panning speed
             if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
                 camera.shake(0.2f, 0.1f);
             }
@@ -159,6 +166,12 @@ int main()
             //camera.FollowPlayerSmoothSpring(player.position, cameraOffset, deltaTime);
 
             camera.updateShake(deltaTime);
+
+            // Render UI elements (health and stamina bars)
+            glDisable(GL_DEPTH_TEST); // Disable depth testing for UI rendering
+            ui.renderHealthBar(player.health, 100.0f);
+            ui.renderStaminaBar(player.stamina, 100.0f);
+            glEnable(GL_DEPTH_TEST); // Re-enable depth testing
         }
         else if (State == GAME_MENU)
         {
@@ -175,7 +188,8 @@ int main()
         glfwPollEvents();
         //std::cout << "Left click: " << left_mouse_button_pressed << " Right click: " << right_mouse_button_pressed << std::endl;
         //std::cout << "Player position: (" << player.position.x << ", " << player.position.y << ", " << player.position.z << ")\n";
-        std::cout << "CharState: " << player.charState << std::endl;
+         std::cout << "CharState: " << player.charState << std::endl;
+        std::cout << "Stamina: " << player.stamina << std::endl;
         //std::cout << "is blocking: " << player.isBlocking << std::endl;
         //std::cout << "blend amount: " << player.blendAmount << std::endl;
     }
