@@ -750,6 +750,13 @@ void Player::update(float deltaTime)
         break;
 
     case PARRY:
+        if (soundEngine && !soundEngine->isSoundPlaying("parry")) {
+            soundEngine->stopSound("footstep");
+            soundEngine->playSound("parry");
+        } else if (soundEngine && soundEngine->isSoundPlaying("parry")) {
+            // soundEngine->stopSound("parry");
+            soundEngine->playSound("parry");
+        }
         animator.PlayAnimation(&parryAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         isBlocking = false;
         if (animator.m_CurrentTime > parryAnim.GetDuration() - 0.1f) {
@@ -761,6 +768,13 @@ void Player::update(float deltaTime)
         break;
 
     case IS_HIT:
+        if (soundEngine && !soundEngine->isSoundPlaying("hit")) {
+            soundEngine->stopSound("footstep");
+            soundEngine->playSound("hit");
+        } else if (soundEngine && soundEngine->isSoundPlaying("hit")) {
+            // soundEngine->stopSound("parry");
+            soundEngine->playSound("hit");
+        }
         animator.PlayAnimation(&isHitAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         isBlocking = false;
         if (animator.m_CurrentTime > isHitAnim.GetDuration() - 0.1f) {
