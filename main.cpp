@@ -11,6 +11,10 @@
 #include <learnopengl/model.h>
 #include "TrainingDummy.h"
 #include "UI.h"
+#include "SoundEngine.h"
+#include <SFML/Audio.hpp>
+#include <vector>
+#include <string>
 
 enum GameState {
     GAME_MENU,
@@ -50,6 +54,9 @@ glm::vec3 charPosition(0.0f, 0.0f, 0.0f);
 
 // UI system
 UI ui;
+
+// Menu music
+sf::Music menuMusic;
 
 int main()
 {
@@ -95,6 +102,11 @@ int main()
     // Initialize UI system
     ui.initialize(SCR_WIDTH, SCR_HEIGHT);
 
+    // Initialize Sound Engine
+    SoundEngine soundEngine;
+    soundEngine.initialize();
+    
+
     // build and compile shaders
     // -------------------------
     Shader shader("anim_model.vs", "anim_model.fs");
@@ -115,6 +127,11 @@ int main()
 
         if (State == GAME_ACTIVE)
         {
+            // Switch to battle music
+            if (soundEngine.getCurrentMusic() != "battle") {
+                soundEngine.switchToMusic("battle");
+            }
+            
             glEnable(GL_DEPTH_TEST);
             player.update(deltaTime);
             player.processInput(window, camera, deltaTime);
@@ -180,16 +197,29 @@ int main()
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
+            // Switch to menu music
+            if (soundEngine.getCurrentMusic() != "menu") {
+                soundEngine.switchToMusic("menu");
+            }
+
             menu.draw();
         }
 
+
+        // SFML Sound Test - Press T to play test sound
+        if (State == GAME_ACTIVE && glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+            if (!soundEngine.isSoundPlaying("test")) {
+                soundEngine.playSound("test");
+                std::cout << "Playing test sound!" << std::endl;
+            }
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
         //std::cout << "Left click: " << left_mouse_button_pressed << " Right click: " << right_mouse_button_pressed << std::endl;
         //std::cout << "Player position: (" << player.position.x << ", " << player.position.y << ", " << player.position.z << ")\n";
-         std::cout << "CharState: " << player.charState << std::endl;
-        std::cout << "Stamina: " << player.stamina << std::endl;
+        //std::cout << "CharState: " << player.charState << std::endl;
+        //std::cout << "Stamina: " << player.stamina << std::endl;
         //std::cout << "is blocking: " << player.isBlocking << std::endl;
         //std::cout << "blend amount: " << player.blendAmount << std::endl;
     }
