@@ -7,15 +7,12 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <learnopengl/model.h>
 #include "TrainingDummy.h"
 #include "UI.h"
 #include "SoundEngine.h"
 #include "DebugDrawer.h"
-#include <SFML/Audio.hpp>
 #include <vector>
-#include <string>
 
 enum GameState {
     GAME_MENU,
@@ -35,9 +32,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
 
-bool left_mouse_button_pressed = false;
-bool right_mouse_button_pressed = false;
-
 // Camera and timing
 PlayerCamera camera(glm::vec3(0.0f, 0.0f, 0.0f));
 float deltaTime = 0.0f, lastFrame = 0.0f;
@@ -49,9 +43,6 @@ const unsigned int SCR_HEIGHT = 800;
 // wall collision
 const float WALL_X = 17.5f;
 const float WALL_Z = 17.5f;
-
-// character position for camera raycasting
-glm::vec3 charPosition(0.0f, 0.0f, 0.0f);
 
 // UI system
 UI ui;
@@ -144,7 +135,7 @@ int main()
             {
                 player.position.z = (player.position.z > 0) ? WALL_Z : -WALL_Z;
             }
-            charPosition = player.position;
+            //charPosition = player.position;
             //camera.FollowPlayer(player.position);
             dummy.update(deltaTime, player);
 
@@ -281,29 +272,6 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
                 State = GAME_ACTIVE;
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             }
-        }
-    }
-    else if (State == GAME_ACTIVE)
-    {
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-        {
-            // Handle left mouse button press
-            left_mouse_button_pressed = true;
-        }
-        else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-        {
-            // Handle left mouse button release
-            left_mouse_button_pressed = false;
-        }
-        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-        {
-            // Handle left mouse button press
-            right_mouse_button_pressed = true;
-        }
-        else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
-        {
-            // Handle left mouse button release
-            right_mouse_button_pressed = false;
         }
     }
 }
