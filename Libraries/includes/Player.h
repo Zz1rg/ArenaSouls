@@ -1,12 +1,8 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <glm/glm.hpp>
-#include <glad/glad.h>
+#include "Entity.h"
 #include <GLFW/glfw3.h>
-#include <learnopengl/model_animation.h>
-#include <learnopengl/animator.h>
-#include <learnopengl/shader_m.h>
 #include <learnopengl/camera.h>
 
 // Forward declaration
@@ -29,13 +25,8 @@ enum AnimState {
     IS_HIT
 };
 
-class Player {
+class Player : public BaseEntity {
 public:
-    glm::vec3 position;
-    glm::vec3 rotation;
-    glm::vec3 scale;
-    float blendAmount;
-    float blendRate;
     AnimState charState;
 
     int health;
@@ -46,32 +37,31 @@ public:
     float staminaRegenDelay;
     float lastStaminaUse;
 
-    Model model;
     Animation idleAnim, walkAnim, runAnim, dodgeAnim, attackAnim1, attackAnim2, attackAnim3, runAttackAnim, initBlockAnim, blockAnim, parryAnim, blockWalkAnim, isHitAnim;
     Animation *currentAnim;
-    Animator animator;
+    
     bool chain;
 	bool isBlocking;
-    SoundEngine* soundEngine; // Pointer to sound engine
+    SoundEngine* soundEngine;
+    glm::vec3 moveDir;
 
     Player();
     void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
-    void update(float deltaTime);
-    void draw(Shader& shader);
+    void update(float deltaTime) override;
     void tryBlock();
     void tryDodge();
     void updateStamina(float deltaTime);
     void setSoundEngine(SoundEngine* engine);
     glm::vec3 getForwardDir();
-    //glm::vec3 getPosition();
 
-    // Check if the player is currently attacking
     bool isAttacking() const;
-
-    // Check if the player is in a blocking state
     bool isBlockingState() const;
-
     bool isMoving() const;
+
+private:
+    void consumeStamina(float amount);
+    bool handleAttack(Animation& attackAnim, float damageStart, float damageEnd);
+    void playActionSound(const std::string& soundName);
 };
 
 #endif

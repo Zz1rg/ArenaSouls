@@ -12,6 +12,7 @@
 #include "TrainingDummy.h"
 #include "UI.h"
 #include "SoundEngine.h"
+#include "DebugDrawer.h"
 #include <SFML/Audio.hpp>
 #include <vector>
 #include <string>
@@ -103,6 +104,8 @@ int main()
     SoundEngine soundEngine;
     soundEngine.initialize();
     
+    // Initialize Debug Drawer
+    DebugDrawer debugDrawer;
 
     // build and compile shaders
     // -------------------------
@@ -169,6 +172,18 @@ int main()
             model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f)); // Scale it down
             shader.setMat4("model", model);
             arena.Draw(shader);
+
+            // --- Draw Hitboxes ---
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Render in wireframe mode to see through the spheres
+            for (const auto& hitbox : player.attackHitboxes) {
+                glm::vec3 color = player.isDamageActive ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+                debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
+            }
+            for (const auto& hitbox : player.blockHitboxes) {
+                glm::vec3 color = player.isBlocking ? glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.5f, 0.5f, 0.5f);
+                debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
+            }
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch back to fill mode
 
             glm::vec3 cameraOffset(0.0f, 1.5f, 3.0f); // Adjusted height and distance
             float panSpeed = 1.0f; // Smooth horizontal panning speed

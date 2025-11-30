@@ -1,13 +1,11 @@
 #ifndef TRAINING_DUMMY_H
 #define TRAINING_DUMMY_H
 
-#include <glad/glad.h>
-#include <learnopengl/animator.h>
-#include <learnopengl/model_animation.h>
-#include <learnopengl/shader_m.h>
+#include "Entity.h"
+#include "Hitbox.h"
+#include <vector>
 
-#include <glm/glm.hpp>
-#include "Player.h" // Include Player header for accessing player state
+class Player; // Forward declaration
 
 enum DummyState
 {
@@ -19,39 +17,35 @@ enum DummyState
     DUMMY_PUNCHING,
     DUMMY_PUNCH_TO_GUARD,
     DUMMY_PUNCH_TO_IDLE,
-    DUMMY_GOT_HIT // New state for handling got-hit animation
+    DUMMY_GOT_HIT, // New state for handling got-hit animation
+    DUMMY_GOT_HIT_TO_IDLE
 };
 
-class TrainingDummy
+class TrainingDummy : public BaseEntity
 {
 public:
-    glm::vec3 position;
-    glm::vec3 rotation;
-    glm::vec3 scale;
-    float blendAmount;
-    float blendRate;
     DummyState dummyState;
 
-    Model model;
     Animation idleAnim;
     Animation guardAnim;
     Animation punchAnim;
     Animation gotHitAnim;
 
-    Animator animator;
+    std::vector<Hitbox> attackHitboxes;
+    std::vector<Hitbox> blockHitboxes;
 
     // Distance thresholds
     float guardDistance; // Distance at which dummy puts up guard
     float punchDistance; // Distance at which dummy punches
 
     TrainingDummy();
-    TrainingDummy(glm::vec3 startPosition);
     void update(float deltaTime, const Player& player);
-    void draw(Shader& shader);
+    void update(float deltaTime) override;
     float distanceToPlayer(glm::vec3 playerPosition);
 
     // Check if the training dummy is hit by the player
     bool isHitByPlayer(const Player& player);
+    bool isDamageActive = false;
 };
 
 #endif

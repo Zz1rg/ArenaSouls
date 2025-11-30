@@ -28,6 +28,8 @@ if(WIN32)
         assimp
         freetype
         irrKlang
+        sfml-audio-d
+        sfml-system-d
     )
     # Add a definition often needed on MSVC for safety warnings
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -69,6 +71,10 @@ set(MAIN_SOURCES
     TrainingDummy.cpp
     PlayerCamera.cpp
     Menu.cpp
+    SoundEngine.cpp
+    UI.cpp
+    DebugDrawer.cpp
+    Entity.cpp
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES})
