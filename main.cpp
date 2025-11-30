@@ -16,6 +16,7 @@
 
 enum GameState {
     GAME_MENU,
+    GAME_STARTING,
     GAME_ACTIVE
 };
 
@@ -116,6 +117,10 @@ int main()
         lastFrame = currentFrame;
 
         processInput(window);
+
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && State == GAME_STARTING) {
+            State = GAME_ACTIVE;
+        }
 
         if (State == GAME_ACTIVE)
         {
@@ -260,18 +265,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (State == GAME_MENU)
+    if (State == GAME_MENU && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+        if (app->menu->isStartButtonClicked(xpos, ypos))
         {
-            double xpos, ypos;
-            glfwGetCursorPos(window, &xpos, &ypos);
-            Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
-            if (app->menu->isStartButtonClicked(xpos, ypos))
-            {
-                State = GAME_ACTIVE;
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            }
+            State = GAME_STARTING;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
     }
 }
