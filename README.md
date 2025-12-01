@@ -15,7 +15,11 @@ Arena Souls is a third-person combat game where players face off against challen
 
 ## 🎥 Demo Video
 
-_[Embed your 30-second screen recording here]_
+
+
+https://github.com/user-attachments/assets/155943fd-8233-45a7-9b6c-2d4c0becc766
+
+
 
 ## 📸 Screenshots
 
@@ -32,7 +36,7 @@ _[Embed your 30-second screen recording here]_
 
 ## 🎯 Itch.io Project
 
-Play the game online: _[Your itch.io project link here]_
+Play the game online: https://zz1rg.itch.io/arenasouls
 
 ## 🎮 Gameplay Features
 
