@@ -10,7 +10,7 @@
 
 Player::Player()
     : BaseEntity("resources/objects/mixamo-knight/Sword And Shield Idle/Sword And Shield Idle.dae", &idleAnim), 
-    health(10),
+    health(100),
       stamina(100.0f),
       maxHealth(100),
       maxStamina(100.0f),
@@ -582,6 +582,10 @@ bool Player::isMoving() const {
 
 bool Player::isInParryWindow() const {
     return inParryWindow;
+}
+
+bool Player::isDead() const {
+    return charState == DEAD;
 }
 
 void Player::checkCollisionWithBoss(Boss& boss) {

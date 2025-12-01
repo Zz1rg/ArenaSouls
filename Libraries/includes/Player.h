@@ -63,6 +63,7 @@ public:
 
     bool isAttacking() const;
     bool isBlockingState() const;
+    bool isDead() const;
     bool isMoving() const;
     bool isInParryWindow() const;
     void consumeStamina(float amount);
