@@ -42,12 +42,14 @@ public:
     float attackCooldown;
     bool hasHitPlayer;  // Track if current attack has already hit player
     bool isTakingHit;   // Track if boss is currently taking damage
+    class Player* playerRef; // Reference to player for checking if alive
 
     Boss();
     void update(float deltaTime) override;
     void setTarget(const glm::vec3& playerPos);
     void takeDamage(int damage);
     void setSoundEngine(SoundEngine* engine);
+    void setPlayerReference(class Player* player); // Set reference to player for death checking
     void checkCollisionWithPlayer(class Player& player); // Forward declaration collision method
     
     bool isAttacking() const;

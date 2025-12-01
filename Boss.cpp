@@ -31,15 +31,16 @@ Boss::Boss()
     attackCooldown(0.4f),
     hasHitPlayer(false),
     isTakingHit(false),
-    soundEngine(nullptr)
+    soundEngine(nullptr),
+    playerRef(nullptr)
 {
     position = glm::vec3(0.0f, -0.6f, -15.0f); // Start position away from player
     rotation = glm::vec3(0.0f, 0.0f, 0.0f);
     scale = glm::vec3(0.8f); // Slightly larger than player
 
     // Initialize hitboxes for boss attacks
-    attackHitboxes.push_back({"mixamorig_RightHand", glm::vec3(0.0f, 0.0f, 0.0f), 0.3f});
-    attackHitboxes.push_back({"mixamorig_LeftHand", glm::vec3(0.0f, 0.0f, 0.0f), 0.3f});
+    attackHitboxes.push_back({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 1.5f});
+    // blockHitboxes.push_back({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 0.5f});
 
     targetPosition = glm::vec3(0.0f);
     currentAnim = &idleAnim;
@@ -175,6 +176,12 @@ void Boss::update(float deltaTime)
 
 void Boss::updateAI(float deltaTime)
 {
+    // Check if player is dead - if so, stop all AI behavior
+    if (playerRef && playerRef->health <= 0) {
+        bossState = BOSS_IDLE; // Go to idle when player is dead
+        return;
+    }
+
     if (bossState == BOSS_ATTACK_1 || bossState == BOSS_ATTACK_2 || 
         bossState == BOSS_ATTACK_3 || bossState == BOSS_STUNT || 
         bossState == BOSS_LONG_STUNT || bossState == BOSS_DYING || 
@@ -277,6 +284,11 @@ void Boss::setSoundEngine(SoundEngine* engine)
     soundEngine = engine;
 }
 
+void Boss::setPlayerReference(Player* player)
+{
+    playerRef = player;
+}
+
 bool Boss::isAttacking() const
 {
     return bossState == BOSS_ATTACK_1 || bossState == BOSS_ATTACK_2 || bossState == BOSS_ATTACK_3;
@@ -346,7 +358,7 @@ void Boss::checkCollisionWithPlayer(Player& player) {
                     }
                 } else {
                     // Player takes damage
-                    player.health -= 15; // Boss deals 20 damage
+                    player.health -= 15; // Boss deals 15 damage
                     player.charState = IS_HIT;
                     player.animator.m_CurrentTime = 0.0f; // Reset animation time to start IS_HIT animation properly
                     player.isTakingHit = true;
