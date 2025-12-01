@@ -183,7 +183,7 @@ int main()
             boss.checkCollisionWithPlayer(player);
             player.checkCollisionWithBoss(boss);
             
-            dummy.update(deltaTime, player);
+            // dummy.update(deltaTime, player);
 
             glClearColor(0.817f, 0.9529f, 0.9804f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -201,7 +201,7 @@ int main()
             shader.setBool("useBones", true);
             player.draw(shader);
             boss.draw(shader);
-            dummy.draw(shader);
+            // dummy.draw(shader);
 
             //std::cout << "Player Position: (" << player.position.x << ", " << player.position.y << ", " << player.position.z << ")\n";
 
