@@ -10,7 +10,7 @@
 
 Player::Player()
     : BaseEntity("resources/objects/mixamo-knight/Sword And Shield Idle/Sword And Shield Idle.dae", &idleAnim), 
-    health(100),
+    health(10),
       stamina(100.0f),
       maxHealth(100),
       maxStamina(100.0f),
@@ -31,6 +31,7 @@ Player::Player()
 	  blockWalkAnim("resources/objects/mixamo-knight/block-walk/Sword And Shield Strafe.dae", &model),
       parryAnim("resources/objects/mixamo-knight/parry/Sword And Shield Impact.dae", &model),
       isHitAnim("resources/objects/mixamo-knight/is-hit/Sword And Shield Impact.dae", &model),
+      deadAnim("resources/objects/mixamo-knight/death/Falling Back Death.dae", &model),
       chain(false),
 	  isBlocking(false),
       soundEngine(nullptr),
@@ -197,9 +198,17 @@ float chainWindowStart = 0.6f;
 
 void Player::update(float deltaTime)
 {
+    if (charState == DEAD) {
+        return; // No further updates if dead
+    }
+
     isDamageActive = false;
     isBlocking = false;
     isTakingHit = false; // Reset taking hit flag each frame
+
+    if (health <= 0) {
+        charState = DYING;
+    }
 
     // Update parry window
     if (inParryWindow) {
@@ -232,23 +241,7 @@ void Player::update(float deltaTime)
             charState = IDLE_ATTACK_1;
             hasHitTarget = false; // Reset hit flag for new attack
         }
-        // Test keys for health/stamina (for debugging)
-        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_H) == GLFW_PRESS) {
-            health -= 10; // Decrease health for testing
-            if (health < 0) health = 0;
-        }
-        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_J) == GLFW_PRESS) {
-            health += 10; // Increase health for testing
-            if (health > maxHealth) health = maxHealth;
-        }
 
-        // Test keys for parry and hit reactions
-        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_P) == GLFW_PRESS) {
-            charState = PARRY;
-        }
-        else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_I) == GLFW_PRESS) {
-            charState = IS_HIT;
-        }
         break;
 
     case IDLE_WALK:
@@ -553,6 +546,14 @@ void Player::update(float deltaTime)
             float startTime = animator.m_CurrentTime2;
             animator.PlayAnimation(&idleAnim, NULL, startTime, 0.0f, blendAmount);
             charState = IDLE;
+        }
+        break;
+
+    case DYING:
+        currentAnim = &deadAnim;
+        animator.PlayAnimation(&deadAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+        if (animator.m_CurrentTime > deadAnim.GetDuration() - 0.1f) {
+            charState = DEAD;
         }
         break;
     }

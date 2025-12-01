@@ -109,6 +109,7 @@ int main()
     player.setSoundEngine(&soundEngine);
     Boss boss;
     boss.setSoundEngine(&soundEngine);
+    boss.setPlayerReference(&player); // Set player reference for death checking
     TrainingDummy dummy; // Position dummy 10 units ahead
     //Model arena("resources/objects/arena/maze-grass/obj_export/maze_grass.obj");
     Model arena("resources/objects/arena/obj_v3/arena.obj");
