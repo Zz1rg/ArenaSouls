@@ -64,9 +64,9 @@ public:
     bool isBlockingState() const;
     bool isMoving() const;
     bool isInParryWindow() const;
+    void consumeStamina(float amount);
 
 private:
-    void consumeStamina(float amount);
     bool handleAttack(Animation& attackAnim, float damageStart, float damageEnd);
     void playActionSound(const std::string& soundName);
 };

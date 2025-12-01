@@ -14,7 +14,7 @@ Boss::Boss()
     maxHealth(300),
     moveSpeed(1.5f),
     attackRange(2.0f),
-    detectionRange(8.0f),
+    detectionRange(15.0f),
     idleAnim("resources/objects/mutant-boss/Mutant Breathing Idle/Mutant Breathing Idle.dae", &model),
     walkAnim("resources/objects/mutant-boss/Mutant Walking/Mutant Walking.dae", &model),
     runAnim("resources/objects/mutant-boss/Mutant Run/Mutant Run.dae", &model),
@@ -33,7 +33,7 @@ Boss::Boss()
     isTakingHit(false),
     soundEngine(nullptr)
 {
-    position = glm::vec3(5.0f, -0.6f, 5.0f); // Start position away from player
+    position = glm::vec3(0.0f, -0.6f, -15.0f); // Start position away from player
     rotation = glm::vec3(0.0f, 0.0f, 0.0f);
     scale = glm::vec3(0.8f); // Slightly larger than player
 
@@ -320,12 +320,14 @@ void Boss::checkCollisionWithPlayer(Player& player) {
         float dotProduct = glm::dot(bossForward, toPlayer);
         
         // Only attack if player is in front (dot product > 0, can adjust threshold for narrower/wider arc)
-        if (dotProduct > 0.3f) { // 0.3f allows for ~70 degree cone in front of boss
+        if (dotProduct > 0.3f) { // 0.3f allows for around 70 degree cone in front of boss
             for (const auto& bossHitbox : attackHitboxes) {
                 float distanceToPlayer = glm::distance(bossHitbox.worldPosition, player.position);
                 if (distanceToPlayer < bossHitbox.radius + 0.5f) { // 0.5f is player body radius
+
                 if (player.isBlockingState()) {
                     // Check if player is in parry window (perfect timing)
+                    player.consumeStamina(20.0f); // Blocking consumes stamina
                     if (player.isInParryWindow()) {
                         // Perfect parry! Trigger long stunt for extended vulnerability window
                         bossState = BOSS_LONG_STUNT;
@@ -344,7 +346,7 @@ void Boss::checkCollisionWithPlayer(Player& player) {
                     }
                 } else {
                     // Player takes damage
-                    player.health -= 20; // Boss deals 20 damage
+                    player.health -= 15; // Boss deals 20 damage
                     player.charState = IS_HIT;
                     player.animator.m_CurrentTime = 0.0f; // Reset animation time to start IS_HIT animation properly
                     player.isTakingHit = true;

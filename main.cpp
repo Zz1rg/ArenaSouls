@@ -43,8 +43,10 @@ const unsigned int SCR_WIDTH = 1000;
 const unsigned int SCR_HEIGHT = 800;
 
 // wall collision
-const float WALL_X = 17.5f;
-const float WALL_Z = 17.5f;
+const float MAX_WALL_X = 17.4f;
+const float MIN_WALL_X = -10.0f;
+const float MAX_WALL_Z = 13.1f;
+const float MIN_WALL_Z = -23.4f;
 
 // UI system
 UI ui;
@@ -135,28 +137,20 @@ int main()
             glEnable(GL_DEPTH_TEST);
             player.update(deltaTime);
             player.processInput(window, camera, deltaTime);
-            if (abs(player.position.x) > WALL_X)
-            {
-                player.position.x = (player.position.x > 0) ? WALL_X : -WALL_X;
-            }
-            if (abs(player.position.z) > WALL_Z)
-            {
-                player.position.z = (player.position.z > 0) ? WALL_Z : -WALL_Z;
-            }
+            if (player.position.x > MAX_WALL_X) player.position.x = MAX_WALL_X;
+            if (player.position.x < MIN_WALL_X) player.position.x = MIN_WALL_X;
+            if (player.position.z > MAX_WALL_Z) player.position.z = MAX_WALL_Z;
+            if (player.position.z < MIN_WALL_Z) player.position.z = MIN_WALL_Z;
             
             // Update boss AI with player position
             boss.setTarget(player.position);
             boss.update(deltaTime);
             
             // Boss collision with walls
-            if (abs(boss.position.x) > WALL_X)
-            {
-                boss.position.x = (boss.position.x > 0) ? WALL_X : -WALL_X;
-            }
-            if (abs(boss.position.z) > WALL_Z)
-            {
-                boss.position.z = (boss.position.z > 0) ? WALL_Z : -WALL_Z;
-            }
+            if (boss.position.x > MAX_WALL_X) boss.position.x = MAX_WALL_X;
+            if (boss.position.x < MIN_WALL_X) boss.position.x = MIN_WALL_X;
+            if (boss.position.z > MAX_WALL_Z) boss.position.z = MAX_WALL_Z;
+            if (boss.position.z < MIN_WALL_Z) boss.position.z = MIN_WALL_Z;
             
             // Check collisions between player and boss
             boss.checkCollisionWithPlayer(player);
@@ -180,7 +174,9 @@ int main()
             shader.setBool("useBones", true);
             player.draw(shader);
             boss.draw(shader);
-            dummy.draw(shader);
+            //dummy.draw(shader);
+
+            //std::cout << "Player Position: (" << player.position.x << ", " << player.position.y << ", " << player.position.z << ")\n";
 
             // draw arena
             shader.setBool("useBones", false);

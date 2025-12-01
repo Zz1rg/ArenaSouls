@@ -40,7 +40,7 @@ Player::Player()
       parryWindowStart(0.0f),
       parryWindowDuration(0.25f)
 {
-    position = glm::vec3(0.0f, -0.6f, 0.0f);
+    position = glm::vec3(0.0f, -0.6f, -2.0f);
     rotation = glm::vec3(0.0f, 180.0f, 0.0f);
     scale = glm::vec3(0.6f);
 
@@ -571,7 +571,7 @@ bool Player::isAttacking() const {
 }
 
 bool Player::isBlockingState() const {
-    return charState == INIT_BLOCK || charState == INIT_BLOCK_TO_BLOCK || charState == BLOCK || charState == BLOCK_WALK || charState == BLOCK_IDLE || isBlocking;
+    return charState == INIT_BLOCK || charState == INIT_BLOCK_TO_BLOCK || charState == BLOCK || charState == BLOCK_WALK || charState == BLOCK_IDLE || charState == BLOCK_WALKING || isBlocking;
 }
 
 bool Player::isMoving() const {
