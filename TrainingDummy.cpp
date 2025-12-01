@@ -110,7 +110,7 @@ void TrainingDummy::update(float deltaTime, const Player& player) {
 
     case DUMMY_GOT_HIT:
         animator.PlayAnimation(&gotHitAnim, NULL, animator.m_CurrentTime, 0.0f, 0.0f);
-        if (animator.m_CurrentTime >= gotHitAnim.GetDuration()) {
+        if (animator.m_CurrentTime >= gotHitAnim.GetDuration() - 0.1f) {
             dummyState = DUMMY_GOT_HIT_TO_IDLE;
         }
         break;

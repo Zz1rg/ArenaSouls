@@ -38,8 +38,8 @@ Boss::Boss()
     scale = glm::vec3(0.8f); // Slightly larger than player
 
     // Initialize hitboxes for boss attacks
-    attackHitboxes.push_back({"mixamorig_RightHand", glm::vec3(0.0f, 0.0f, 0.0f), 0.3f});
-    attackHitboxes.push_back({"mixamorig_LeftHand", glm::vec3(0.0f, 0.0f, 0.0f), 0.3f});
+    attackHitboxes.push_back({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 1.5f});
+    // blockHitboxes.push_back({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 0.5f});
 
     targetPosition = glm::vec3(0.0f);
     currentAnim = &idleAnim;

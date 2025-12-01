@@ -21,7 +21,7 @@ enum GameState {
     GAME_ACTIVE
 };
 
-GameState State = GAME_ACTIVE;
+GameState State = GAME_MENU;
 
 struct Application {
     Menu* menu;
@@ -144,7 +144,7 @@ int main()
             
             // Update boss AI with player position
             boss.setTarget(player.position);
-            // boss.update(deltaTime);
+            boss.update(deltaTime);
             
             // Boss collision with walls
             if (boss.position.x > MAX_WALL_X) boss.position.x = MAX_WALL_X;
@@ -189,22 +189,22 @@ int main()
             // --- Draw Hitboxes ---
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Render in wireframe mode to see through the spheres
             // Player hitboxes
-            for (const auto& hitbox : player.attackHitboxes) {
-                glm::vec3 color = player.isDamageActive ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
-                debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
-            }
-            for (const auto& hitbox : player.blockHitboxes) {
-                glm::vec3 color = player.isBlocking ? glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.5f, 0.5f, 0.5f);
-                debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
-            }
-            for (const auto& hitbox : dummy.blockHitboxes) {
-                glm::vec3 color =  glm::vec3(0.5f, 0.5f, 0.5f);
-                debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
-            }
-            for (const auto& hitbox : dummy.attackHitboxes) {
-                glm::vec3 color = glm::vec3(1.0f, 0.5f, 0.0f);
-                debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
-            }
+            // for (const auto& hitbox : player.attackHitboxes) {
+            //     glm::vec3 color = player.isDamageActive ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+            //     debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
+            // }
+            // for (const auto& hitbox : player.blockHitboxes) {
+            //     glm::vec3 color = player.isBlocking ? glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.5f, 0.5f, 0.5f);
+            //     debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
+            // }
+            // for (const auto& hitbox : boss.attackHitboxes) {
+            //     glm::vec3 color = boss.isDamageActive ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+            //     debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
+            // }
+            // for (const auto& hitbox : boss.blockHitboxes) {
+            //     glm::vec3 color = glm::vec3(0.0f, 0.0f, 1.0f);
+            //     debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
+            // }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch back to fill mode
 
             glm::vec3 cameraOffset(0.0f, 1.5f, 3.0f); // Adjusted height and distance
