@@ -45,8 +45,8 @@ Player::Player()
     scale = glm::vec3(0.6f);
 
     // --- Initialize Hitboxes ---
-    attackHitboxes.push_back({"mixamorig_RightHand", glm::vec3(0.0f, 0.0f, 0.0f), 0.2f});
-    blockHitboxes.push_back({"mixamorig_LeftForeArm", glm::vec3(0.0f, 0.1f, 0.0f), 0.2f});
+    attackHitboxes.push_back({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 0.5f});
+    blockHitboxes.push_back({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 0.5f});
 }
 
 void Player::processInput(GLFWwindow* window, Camera& camera, float deltaTime)

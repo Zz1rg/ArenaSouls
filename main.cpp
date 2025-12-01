@@ -21,7 +21,7 @@ enum GameState {
     GAME_ACTIVE
 };
 
-GameState State = GAME_MENU;
+GameState State = GAME_ACTIVE;
 
 struct Application {
     Menu* menu;
@@ -197,9 +197,12 @@ int main()
                 glm::vec3 color = player.isBlocking ? glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.5f, 0.5f, 0.5f);
                 debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
             }
-            // Boss hitboxes
-            for (const auto& hitbox : boss.attackHitboxes) {
-                glm::vec3 color = boss.isDamageActive ? glm::vec3(1.0f, 0.5f, 0.0f) : glm::vec3(1.0f, 1.0f, 0.0f);
+            for (const auto& hitbox : dummy.blockHitboxes) {
+                glm::vec3 color =  glm::vec3(0.5f, 0.5f, 0.5f);
+                debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
+            }
+            for (const auto& hitbox : dummy.attackHitboxes) {
+                glm::vec3 color = glm::vec3(1.0f, 0.5f, 0.0f);
                 debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch back to fill mode

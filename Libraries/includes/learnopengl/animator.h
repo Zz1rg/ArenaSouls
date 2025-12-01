@@ -34,12 +34,14 @@ public:
 		if (m_CurrentAnimation)
 		{
 			m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
-			m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+			if (m_CurrentAnimation->isLooping)
+				m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
 
 			if (m_CurrentAnimation2)
 			{
 				m_CurrentTime2 += m_CurrentAnimation2->GetTicksPerSecond() * dt;
-				m_CurrentTime2 = fmod(m_CurrentTime2, m_CurrentAnimation2->GetDuration());
+				if (m_CurrentAnimation2->isLooping)
+					m_CurrentTime2 = fmod(m_CurrentTime2, m_CurrentAnimation2->GetDuration());
 			}
 
 			CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));

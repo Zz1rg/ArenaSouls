@@ -14,13 +14,14 @@ TrainingDummy::TrainingDummy()
     punchAnim("resources/objects/dummy/punch/Cross Punch.dae", &model),
     gotHitAnim("resources/objects/dummy/got-hit/Head Hit.dae", &model)
 {
+    gotHitAnim.isLooping = false;
     position = glm::vec3(0.0f, -0.6f, -10.0f);
     rotation = glm::vec3(0.0f, 0.0f, 0.0f);
     scale = glm::vec3(0.6f);
 
     // Define hitboxes
-    attackHitboxes.push_back(Hitbox({"mixamorig:RightHand",  glm::vec3(0.0f, 0.0f, 0.0f),0.2f}));
-    blockHitboxes.push_back(Hitbox({"mixamorig:Spine2", glm::vec3(0.0f, 0.0f, 0.0f), 0.4f}));
+    attackHitboxes.push_back(Hitbox({"mixamorig_Spine2",  glm::vec3(0.0f, 150.0f, 0.0f),0.5f}));
+    blockHitboxes.push_back(Hitbox({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 0.5f}));
 }
 
 float TrainingDummy::distanceToPlayer(glm::vec3 playerPosition) {
@@ -37,8 +38,9 @@ void TrainingDummy::update(float deltaTime, const Player& player) {
     isDamageActive = false;
 
     // Check if the training dummy is hit by the player
-    if (isHitByPlayer(player)) {
+    if (isHitByPlayer(player) && dummyState != DUMMY_GOT_HIT && dummyState != DUMMY_GOT_HIT_TO_IDLE) {
         dummyState = DUMMY_GOT_HIT;
+        animator.PlayAnimation(&gotHitAnim, NULL, 0.0f, 0.0f, 0.0f); // Reset and play animation
     }
 
     switch (dummyState) {
