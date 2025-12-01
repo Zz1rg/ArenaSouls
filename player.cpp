@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "Boss.h"
 #include "SoundEngine.h"
 #include <stb_image.h>
 #include <GLFW/glfw3.h>
@@ -32,7 +33,12 @@ Player::Player()
       isHitAnim("resources/objects/mixamo-knight/is-hit/Sword And Shield Impact.dae", &model),
       chain(false),
 	  isBlocking(false),
-      soundEngine(nullptr)
+      soundEngine(nullptr),
+      hasHitTarget(false),
+      isTakingHit(false),
+      inParryWindow(false),
+      parryWindowStart(0.0f),
+      parryWindowDuration(0.25f)
 {
     position = glm::vec3(0.0f, -0.6f, 0.0f);
     rotation = glm::vec3(0.0f, 180.0f, 0.0f);
@@ -110,7 +116,14 @@ void Player::tryBlock()
     {
         // Stop movement sounds when blocking
         if (!isBlocking) {
-            playActionSound("block");
+            // Don't play block sound here - only when actually blocking an attack
+            if (soundEngine) {
+                soundEngine->stopSound("footstep");
+                soundEngine->stopSound("footstep_fast");
+            }
+            // Start parry window on first block press
+            inParryWindow = true;
+            parryWindowStart = glfwGetTime();
         }
         isBlocking = true;
         //charState = BLOCK;
@@ -186,6 +199,15 @@ void Player::update(float deltaTime)
 {
     isDamageActive = false;
     isBlocking = false;
+    isTakingHit = false; // Reset taking hit flag each frame
+
+    // Update parry window
+    if (inParryWindow) {
+        float currentTime = glfwGetTime();
+        if (currentTime - parryWindowStart > parryWindowDuration) {
+            inParryWindow = false; // Parry window expired
+        }
+    }
 
     float attackStaminaCost = 10.0f;
     float runAttackStaminaCost = 12.5f;
@@ -208,6 +230,7 @@ void Player::update(float deltaTime)
         // if left click attack (only if stamina > 0)
         else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && stamina > 0.0f) {
             charState = IDLE_ATTACK_1;
+            hasHitTarget = false; // Reset hit flag for new attack
         }
         // Test keys for health/stamina (for debugging)
         else if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_H) == GLFW_PRESS) {
@@ -257,6 +280,7 @@ void Player::update(float deltaTime)
         else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && stamina > 0.0f) {
             blendAmount = 0.0f;
             charState = WALK_ATTACK;
+            hasHitTarget = false; // Reset hit flag for new attack
             if (soundEngine) {
                 soundEngine->stopSound("footstep");
             }
@@ -316,6 +340,7 @@ void Player::update(float deltaTime)
         else if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             blendAmount = 0.0f;
             charState = RUN_ATTACK;
+            hasHitTarget = false; // Reset hit flag for new attack
             if (soundEngine) {
                 soundEngine->stopSound("footstep_fast");
             }
@@ -347,6 +372,7 @@ void Player::update(float deltaTime)
 
             if (chain) {
                 consumeStamina(attackStaminaCost);
+                hasHitTarget = false; // Reset hit flag for chain attack
                 animator.PlayAnimation(&runAttackAnim, &attackAnim2, animator.m_CurrentTime, 0.0f, blendAmount);
                 charState = CHAIN_ATTACK_2;
             }
@@ -391,6 +417,7 @@ void Player::update(float deltaTime)
             float startTime = animator.m_CurrentTime2;
             if (chain) {
                 consumeStamina(attackStaminaCost);
+                hasHitTarget = false; // Reset hit flag for chain attack
                 animator.PlayAnimation(&attackAnim1, &attackAnim2, animator.m_CurrentTime, 0.0f, blendAmount);
                 charState = CHAIN_ATTACK_2;
             }
@@ -417,6 +444,7 @@ void Player::update(float deltaTime)
             float startTime = animator.m_CurrentTime2;
             if (chain) {
                 consumeStamina(attackStaminaCost);
+                hasHitTarget = false; // Reset hit flag for chain attack
                 animator.PlayAnimation(&attackAnim2, &attackAnim3, animator.m_CurrentTime, 0.0f, blendAmount);
                 charState = CHAIN_ATTACK_3;
             }
@@ -448,25 +476,6 @@ void Player::update(float deltaTime)
             // This block is executed when the blend is complete and state is changed.
         }
         break;
-
-    //case INIT_BLOCKING:
-    //    blendAmount += blendRate;
-    //    blendAmount = fmod(blendAmount, 1.0f);
-    //    animator.PlayAnimation(&initBlockAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
-    //    if (animator.m_CurrentTime > initBlockAnim.GetDuration() - 0.1f) {
-    //        blendAmount = 0.0f;
-    //        float startTime = animator.m_CurrentTime2;
-    //        if (glfwGetMouseButton(glfwGetCurrentContext(), GLFW_MOUSE_BUTTON_RIGHT) != GLFW_PRESS) {
-    //            isBlocking = false;
-    //            animator.PlayAnimation(&initBlockAnim, &idleAnim, animator.m_CurrentTime, 0.0f, blendAmount);
-    //            charState = INIT_BLOCK_IDLE;
-    //        } else {
-    //            animator.PlayAnimation(&initBlockAnim, &blockAnim, animator.m_CurrentTime, 0.0f, blendAmount);
-    //            charState = INIT_BLOCK_TO_BLOCK;
-    //            //charState = BLOCK;
-    //        }
-    //    }
-    //    break;
 
     case INIT_BLOCK_TO_BLOCK:
         handleAnimationBlend(&initBlockAnim, &blockAnim, charState, BLOCK);
@@ -526,7 +535,6 @@ void Player::update(float deltaTime)
         break;
 
     case PARRY:
-        playActionSound("parry");
         animator.PlayAnimation(&parryAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (animator.m_CurrentTime > parryAnim.GetDuration() - 0.1f) {
             blendAmount = 0.0f;
@@ -537,7 +545,8 @@ void Player::update(float deltaTime)
         break;
 
     case IS_HIT:
-        playActionSound("got_hit");
+        currentAnim = &isHitAnim;
+        // Sound is played when the state is set by the boss collision detection
         animator.PlayAnimation(&isHitAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (animator.m_CurrentTime > isHitAnim.GetDuration() - 0.1f) {
             blendAmount = 0.0f;
@@ -562,10 +571,30 @@ bool Player::isAttacking() const {
 }
 
 bool Player::isBlockingState() const {
-    return charState == BLOCK || charState == BLOCK_WALK || charState == BLOCK_IDLE || isBlocking;
+    return charState == INIT_BLOCK || charState == INIT_BLOCK_TO_BLOCK || charState == BLOCK || charState == BLOCK_WALK || charState == BLOCK_IDLE || isBlocking;
 }
 
 bool Player::isMoving() const {
     return glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) == GLFW_PRESS ||
            glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) == GLFW_PRESS;
+}
+
+bool Player::isInParryWindow() const {
+    return inParryWindow;
+}
+
+void Player::checkCollisionWithBoss(Boss& boss) {
+    if (!boss.isAlive()) return;
+    
+    // Player attacking boss
+    if (isDamageActive && isAttacking() && !hasHitTarget) {
+        for (const auto& playerHitbox : attackHitboxes) {
+            float distanceToBoss = glm::distance(playerHitbox.worldPosition, boss.position);
+            if (distanceToBoss < playerHitbox.radius + 0.8f) { // 0.8f is boss body radius
+                boss.takeDamage(25); // Player deals 25 damage
+                hasHitTarget = true; // Mark that we've hit something with this attack
+                break; // Only hit once per attack
+            }
+        }
+    }
 }

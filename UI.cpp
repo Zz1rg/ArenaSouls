@@ -82,7 +82,7 @@ void UI::renderBossHealthBar(float health, float maxHealth, const std::string& b
     float barWidth = 600.0f;
     float barHeight = 30.0f;
     float x = 200.0f; // Center it more on screen
-    float y = 20.0f;  // Top of screen
+    float y = 750.0f;
     
     // Render background (dark red)
     renderRectangle(x, y, barWidth, barHeight, glm::vec3(0.3f, 0.1f, 0.1f));

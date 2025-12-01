@@ -159,38 +159,8 @@ int main()
             }
             
             // Check collisions between player and boss
-            if (boss.isAlive()) {
-                // Boss attacking player
-                if (boss.isDamageActive && boss.isAttacking()) {
-                    for (const auto& bossHitbox : boss.attackHitboxes) {
-                        float distanceToPlayer = glm::distance(bossHitbox.worldPosition, player.position);
-                        if (distanceToPlayer < bossHitbox.radius + 0.5f) { // 0.5f is player body radius
-                            if (player.isBlockingState()) {
-                                // Player blocked the attack
-                                player.charState = PARRY;
-                                soundEngine.playSound("parry");
-                            } else {
-                                // Player takes damage
-                                player.health -= 20; // Boss deals 20 damage
-                                player.charState = IS_HIT;
-                                soundEngine.playSound("got_hit");
-                                if (player.health < 0) player.health = 0;
-                            }
-                        }
-                    }
-                }
-                
-                // Player attacking boss
-                if (player.isDamageActive && player.isAttacking()) {
-                    for (const auto& playerHitbox : player.attackHitboxes) {
-                        float distanceToBoss = glm::distance(playerHitbox.worldPosition, boss.position);
-                        if (distanceToBoss < playerHitbox.radius + 0.8f) { // 0.8f is boss body radius
-                            boss.takeDamage(25); // Player deals 25 damage
-                            break; // Only hit once per attack
-                        }
-                    }
-                }
-            }
+            boss.checkCollisionWithPlayer(player);
+            player.checkCollisionWithBoss(boss);
             
             dummy.update(deltaTime, player);
 

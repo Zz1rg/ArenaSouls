@@ -44,6 +44,11 @@ public:
 	bool isBlocking;
     SoundEngine* soundEngine;
     glm::vec3 moveDir;
+    bool hasHitTarget;   // Track if current attack has already hit a target
+    bool isTakingHit;    // Track if player is currently taking damage
+    bool inParryWindow;  // Track if player is in the parry timing window
+    float parryWindowStart; // When the parry window started
+    float parryWindowDuration; // How long the parry window lasts (0.25s)
 
     Player();
     void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
@@ -53,10 +58,12 @@ public:
     void updateStamina(float deltaTime);
     void setSoundEngine(SoundEngine* engine);
     glm::vec3 getForwardDir();
+    void checkCollisionWithBoss(class Boss& boss); // Forward declaration collision method
 
     bool isAttacking() const;
     bool isBlockingState() const;
     bool isMoving() const;
+    bool isInParryWindow() const;
 
 private:
     void consumeStamina(float amount);

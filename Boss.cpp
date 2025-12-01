@@ -1,4 +1,5 @@
 #include "Boss.h"
+#include "Player.h"
 #include "SoundEngine.h"
 #include <stb_image.h>
 #include <GLFW/glfw3.h>
@@ -21,12 +22,15 @@ Boss::Boss()
     attack2Anim("resources/objects/mutant-boss/Attack2/Mutant Swiping.dae", &model),
     attack3Anim("resources/objects/mutant-boss/Attack3/Zombie Punching.dae", &model),
     stuntAnim("resources/objects/mutant-boss/Stunt/Sword And Shield Impact.dae", &model),
+    longStuntAnim("resources/objects/mutant-boss/Long Stunt/Injured Stumble Idle.dae", &model),
     dyingAnim("resources/objects/mutant-boss/Mutant Dying/Mutant Dying.dae", &model),
     bossState(BOSS_IDLE),
     isDead(false),
     canAttack(true),
     lastAttackTime(0.0f),
-    attackCooldown(2.0f),
+    attackCooldown(0.4f),
+    hasHitPlayer(false),
+    isTakingHit(false),
     soundEngine(nullptr)
 {
     position = glm::vec3(5.0f, -0.6f, 5.0f); // Start position away from player
@@ -44,6 +48,7 @@ Boss::Boss()
 void Boss::update(float deltaTime)
 {
     isDamageActive = false;
+    isTakingHit = false; // Reset taking hit flag each frame
 
     if (isDead) {
         return; // Don't update if boss is dead
@@ -137,6 +142,15 @@ void Boss::update(float deltaTime)
         }
         break;
 
+    case BOSS_LONG_STUNT:
+        currentAnim = &longStuntAnim;
+        animator.PlayAnimation(&longStuntAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+        
+        if (animator.m_CurrentTime > longStuntAnim.GetDuration() - 0.1f) {
+            bossState = BOSS_IDLE;
+        }
+        break;
+
     case BOSS_DYING:
         currentAnim = &dyingAnim;
         animator.PlayAnimation(&dyingAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
@@ -144,7 +158,7 @@ void Boss::update(float deltaTime)
         if (animator.m_CurrentTime > dyingAnim.GetDuration() - 0.1f) {
             bossState = BOSS_DEAD;
             isDead = true;
-            // playActionSound("boss_death");
+            playActionSound("boss_death");
         }
         break;
 
@@ -163,7 +177,8 @@ void Boss::updateAI(float deltaTime)
 {
     if (bossState == BOSS_ATTACK_1 || bossState == BOSS_ATTACK_2 || 
         bossState == BOSS_ATTACK_3 || bossState == BOSS_STUNT || 
-        bossState == BOSS_DYING || bossState == BOSS_DEAD) {
+        bossState == BOSS_LONG_STUNT || bossState == BOSS_DYING || 
+        bossState == BOSS_DEAD) {
         return; // Don't update AI during these states
     }
 
@@ -225,8 +240,9 @@ void Boss::performAttack()
         break;
     }
     
-    // Reset animation time for new attack
+    // Reset animation time and hit flag for new attack
     animator.m_CurrentTime = 0.0f;
+    hasHitPlayer = false;
 }
 
 void Boss::setTarget(const glm::vec3& playerPos)
@@ -236,17 +252,19 @@ void Boss::setTarget(const glm::vec3& playerPos)
 
 void Boss::takeDamage(int damage)
 {
-    if (isDead) return;
+    if (isDead || isTakingHit) return; // Prevent multiple hits in same frame
 
     health -= damage;
+    isTakingHit = true;
+    
     if (health <= 0) {
         health = 0;
         bossState = BOSS_DYING;
         animator.m_CurrentTime = 0.0f;
         // playActionSound("boss_hurt");
     } else {
-        // Play stunt animation occasionally when taking damage
-        if (rand() % 3 == 0) { // 33% chance to stunt
+        // Play stunt animation occasionally when taking damage, but not if in long stunt
+        if (bossState != BOSS_LONG_STUNT && rand() % 3 == 0) { // 33% chance to stunt, but not during long stunt
             bossState = BOSS_STUNT;
             animator.m_CurrentTime = 0.0f;
             // playActionSound("boss_hurt");
@@ -289,4 +307,54 @@ glm::vec3 Boss::getForwardDir()
         0.0f,
         cos(glm::radians(rotation.y))
     ));
+}
+
+void Boss::checkCollisionWithPlayer(Player& player) {
+    if (!isAlive()) return;
+    
+    // Boss attacking player
+    if (isDamageActive && isAttacking() && !hasHitPlayer) {
+        // Check if player is in front of the boss
+        glm::vec3 bossForward = getForwardDir();
+        glm::vec3 toPlayer = glm::normalize(player.position - position);
+        float dotProduct = glm::dot(bossForward, toPlayer);
+        
+        // Only attack if player is in front (dot product > 0, can adjust threshold for narrower/wider arc)
+        if (dotProduct > 0.3f) { // 0.3f allows for ~70 degree cone in front of boss
+            for (const auto& bossHitbox : attackHitboxes) {
+                float distanceToPlayer = glm::distance(bossHitbox.worldPosition, player.position);
+                if (distanceToPlayer < bossHitbox.radius + 0.5f) { // 0.5f is player body radius
+                if (player.isBlockingState()) {
+                    // Check if player is in parry window (perfect timing)
+                    if (player.isInParryWindow()) {
+                        // Perfect parry! Trigger long stunt for extended vulnerability window
+                        bossState = BOSS_LONG_STUNT;
+                        player.charState = PARRY;
+                        player.animator.m_CurrentTime = 0.0f;
+                        animator.m_CurrentTime = 0.0f; // Reset boss animation for long stunt
+                        if (soundEngine) {
+                            soundEngine->playSound("parry");
+                        }
+                    } else {
+                        // Regular block
+                        player.animator.m_CurrentTime = 0.0f;
+                        if (soundEngine) {
+                            soundEngine->playSound("block");
+                        }
+                    }
+                } else {
+                    // Player takes damage
+                    player.health -= 20; // Boss deals 20 damage
+                    player.charState = IS_HIT;
+                    player.animator.m_CurrentTime = 0.0f; // Reset animation time to start IS_HIT animation properly
+                    player.isTakingHit = true;
+                    if (soundEngine) soundEngine->playSound("got_hit");
+                    if (player.health < 0) player.health = 0;
+                }
+                    hasHitPlayer = true; // Mark that we've hit the player with this attack
+                    break;
+                }
+            }
+        }
+    }
 }

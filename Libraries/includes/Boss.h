@@ -16,6 +16,7 @@ enum BossState {
     BOSS_ATTACK_2,
     BOSS_ATTACK_3,
     BOSS_STUNT,
+    BOSS_LONG_STUNT,
     BOSS_DYING,
     BOSS_DEAD
 };
@@ -30,7 +31,7 @@ public:
     float attackRange;
     float detectionRange;
 
-    Animation idleAnim, walkAnim, runAnim, attack1Anim, attack2Anim, attack3Anim, stuntAnim, dyingAnim;
+    Animation idleAnim, walkAnim, runAnim, attack1Anim, attack2Anim, attack3Anim, stuntAnim, longStuntAnim, dyingAnim;
     Animation* currentAnim;
     
     SoundEngine* soundEngine;
@@ -39,12 +40,15 @@ public:
     bool canAttack;
     float lastAttackTime;
     float attackCooldown;
+    bool hasHitPlayer;  // Track if current attack has already hit player
+    bool isTakingHit;   // Track if boss is currently taking damage
 
     Boss();
     void update(float deltaTime) override;
     void setTarget(const glm::vec3& playerPos);
     void takeDamage(int damage);
     void setSoundEngine(SoundEngine* engine);
+    void checkCollisionWithPlayer(class Player& player); // Forward declaration collision method
     
     bool isAttacking() const;
     bool isAlive() const;

@@ -237,14 +237,14 @@ void SoundEngine::loadGameAssets() {
     // Block/Shield sounds
     std::vector<std::string> blockPaths;
     for (const auto& basePath : basePaths) {
-        blockPaths.push_back(basePath + "block.wav");
+        blockPaths.push_back(basePath + "parry_3.wav");
     }
     loadSoundWithPaths("block", blockPaths);
 
     // Perfect guard/parry sound
     std::vector<std::string> parryPaths;
     for (const auto& basePath : basePaths) {
-        parryPaths.push_back(basePath + "parry_3.wav");
+        parryPaths.push_back(basePath + "block.wav");
     }
     loadSoundWithPaths("parry", parryPaths);
     
@@ -258,9 +258,16 @@ void SoundEngine::loadGameAssets() {
     // Got hit sounds
     std::vector<std::string> hitPaths;
     for (const auto& basePath : basePaths) {
-        hitPaths.push_back(basePath + "got_hit.wav");
+        hitPaths.push_back(basePath + "got_hit_2.wav");
     }
     loadSoundWithPaths("got_hit", hitPaths);
+
+    // Boss Dead sound
+    std::vector<std::string> bossDeathPaths;
+    for (const auto& basePath : basePaths) {
+        bossDeathPaths.push_back(basePath + "boss_dead.wav");
+    }
+    loadSoundWithPaths("boss_death", bossDeathPaths);
     
     // Test sound (for your current T key test)
     std::vector<std::string> testPaths;
