@@ -69,6 +69,7 @@ set(MAIN_SOURCES
     main.cpp
     player.cpp
     TrainingDummy.cpp
+    Boss.cpp
     PlayerCamera.cpp
     Menu.cpp
     SoundEngine.cpp

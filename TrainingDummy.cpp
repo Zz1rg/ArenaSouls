@@ -14,7 +14,6 @@ TrainingDummy::TrainingDummy()
     punchAnim("resources/objects/dummy/punch/Cross Punch.dae", &model),
     gotHitAnim("resources/objects/dummy/got-hit/Head Hit.dae", &model)
 {
-    gotHitAnim.isLooping = false;
     position = glm::vec3(0.0f, -0.6f, -10.0f);
     rotation = glm::vec3(0.0f, 0.0f, 0.0f);
     scale = glm::vec3(0.6f);

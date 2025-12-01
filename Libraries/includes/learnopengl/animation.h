@@ -33,8 +33,10 @@ public:
 		}
 		assert(scene && scene->mRootNode);
 		auto animation = scene->mAnimations[0];
-		m_TicksPerSecond = animation->mTicksPerSecond;
 		m_Duration = animation->mDuration;
+		m_TicksPerSecond = animation->mTicksPerSecond;
+		aiMatrix4x4 globalTransformation = scene->mRootNode->mTransformation;
+		globalTransformation = globalTransformation.Inverse();
 		ReadHierarchyData(m_RootNode, scene->mRootNode);
 		ReadMissingBones(animation, *model);
 	}
@@ -63,8 +65,6 @@ public:
 	{ 
 		return m_BoneInfoMap;
 	}
-
-	bool isLooping = true;
 
 private:
 	void ReadMissingBones(const aiAnimation* animation, Model& model)

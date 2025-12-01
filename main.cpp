@@ -144,7 +144,7 @@ int main()
             
             // Update boss AI with player position
             boss.setTarget(player.position);
-            boss.update(deltaTime);
+            // boss.update(deltaTime);
             
             // Boss collision with walls
             if (boss.position.x > MAX_WALL_X) boss.position.x = MAX_WALL_X;
@@ -174,7 +174,7 @@ int main()
             shader.setBool("useBones", true);
             player.draw(shader);
             boss.draw(shader);
-            //dummy.draw(shader);
+            dummy.draw(shader);
 
             //std::cout << "Player Position: (" << player.position.x << ", " << player.position.y << ", " << player.position.z << ")\n";
 
