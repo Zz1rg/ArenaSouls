@@ -22,7 +22,8 @@ enum AnimState {
 	WALK_ATTACK, WALK_RUN, RUN_WALK,
 	INIT_BLOCK, INIT_BLOCKING, INIT_BLOCK_TO_BLOCK, INIT_BLOCK_IDLE,
     BLOCK, BLOCK_IDLE, PARRY, BLOCK_WALK, BLOCK_WALKING,
-    IS_HIT
+    IS_HIT,
+    DYING, DEAD
 };
 
 class Player : public BaseEntity {
@@ -37,7 +38,7 @@ public:
     float staminaRegenDelay;
     float lastStaminaUse;
 
-    Animation idleAnim, walkAnim, runAnim, dodgeAnim, attackAnim1, attackAnim2, attackAnim3, runAttackAnim, initBlockAnim, blockAnim, parryAnim, blockWalkAnim, isHitAnim;
+    Animation idleAnim, walkAnim, runAnim, dodgeAnim, attackAnim1, attackAnim2, attackAnim3, runAttackAnim, initBlockAnim, blockAnim, parryAnim, blockWalkAnim, isHitAnim, deadAnim;
     Animation *currentAnim;
     
     bool chain;
@@ -62,6 +63,7 @@ public:
 
     bool isAttacking() const;
     bool isBlockingState() const;
+    bool isDead() const;
     bool isMoving() const;
     bool isInParryWindow() const;
     void consumeStamina(float amount);
