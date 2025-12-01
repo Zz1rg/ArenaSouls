@@ -18,13 +18,22 @@
 enum GameState {
     GAME_MENU,
     GAME_STARTING,
-    GAME_ACTIVE
+    GAME_ACTIVE,
+    GAME_WIN,
+    GAME_LOSE
 };
 
 GameState State = GAME_MENU;
 
 struct Application {
     Menu* menu;
+    Player* player;
+    Boss* boss;
+    TrainingDummy* dummy;
+    PlayerCamera* camera;
+    SoundEngine* soundEngine;
+    
+    void resetGame();
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -33,6 +42,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 void processInput(GLFWwindow *window);
+void initGame(Player& player, Boss& boss, TrainingDummy& dummy, PlayerCamera& camera, SoundEngine& soundEngine);
 
 // Camera and timing
 PlayerCamera camera(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -101,7 +111,7 @@ int main()
     
     // Initialize Debug Drawer
     DebugDrawer debugDrawer;
-
+    
     // build and compile shaders
     // -------------------------
     Shader shader("anim_model.vs", "anim_model.fs");
@@ -113,6 +123,16 @@ int main()
     TrainingDummy dummy; // Position dummy 10 units ahead
     //Model arena("resources/objects/arena/maze-grass/obj_export/maze_grass.obj");
     Model arena("resources/objects/arena/obj_v3/arena.obj");
+    
+    // Set up application references
+    app.player = &player;
+    app.boss = &boss;
+    app.dummy = &dummy;
+    app.camera = &camera;
+    app.soundEngine = &soundEngine;
+    
+    // Initialize game state
+    initGame(player, boss, dummy, camera, soundEngine);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -130,6 +150,12 @@ int main()
 
         if (State == GAME_ACTIVE)
         {
+            if (player.isDead()) {
+                State = GAME_LOSE;
+            } else if (!boss.isAlive()) {
+                State = GAME_WIN;
+            }
+
             // Switch to battle music
             if (soundEngine.getCurrentMusic() != "battle") {
                 soundEngine.switchToMusic("battle");
@@ -243,6 +269,40 @@ int main()
 
             menu.draw();
         }
+        else if (State == GAME_WIN)
+        {
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            // Switch to menu music
+            if (soundEngine.getCurrentMusic() != "menu") {
+                soundEngine.switchToMusic("menu");
+            }
+
+            menu.drawWinMenu();
+            glDisable(GL_BLEND);
+        }
+        else if (State == GAME_LOSE)
+        {
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            // Switch to menu music
+            if (soundEngine.getCurrentMusic() != "menu") {
+                soundEngine.switchToMusic("menu");
+            }
+
+            menu.drawLoseMenu();
+            glDisable(GL_BLEND);
+        }
 
 
         // SFML Sound Test - Press T to play test sound
@@ -296,6 +356,26 @@ int main()
     return 0;
 }
 
+void initGame(Player& player, Boss& boss, TrainingDummy& dummy, PlayerCamera& camera, SoundEngine& soundEngine)
+{
+    player = Player();
+    player.setSoundEngine(&soundEngine);
+    
+    boss = Boss();
+    boss.setSoundEngine(&soundEngine);
+    boss.setPlayerReference(&player);
+    
+    dummy = TrainingDummy();
+    soundEngine.stopAllSounds();
+}
+
+void Application::resetGame()
+{
+    if (player && boss && dummy && camera && soundEngine) {
+        initGame(*player, *boss, *dummy, *camera, *soundEngine);
+    }
+}
+
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -332,6 +412,20 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         if (app->menu->isStartButtonClicked(xpos, ypos))
         {
             State = GAME_STARTING;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+    }
+    else if ((State == GAME_WIN || State == GAME_LOSE) && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+        Application* app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+        
+        if (app->menu->isRestartButtonClicked(xpos, ypos))
+        {
+            // Reset game state and restart
+            app->resetGame();
+            State = GAME_MENU;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
     }

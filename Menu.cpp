@@ -17,6 +17,12 @@ float menuVertices[] = {
 Menu::Menu() : menuShader("menu.vs", "menu.fs") {
     stbi_set_flip_vertically_on_load(true);
     backgroundTexture = loadTexture("resources/background.jpg");
+    win_backgroundTexture = loadTexture("resources/win_background.jpg");
+    lose_backgroundTexture = loadTexture("resources/lose_background.jpg");
+    
+    winOpacity = 1.0f;
+    loseOpacity = 1.0f;
+    
     menuShader.use();
     menuShader.setInt("background", 0);
 
@@ -34,6 +40,7 @@ Menu::Menu() : menuShader("menu.vs", "menu.fs") {
 
 void Menu::draw() {
     menuShader.use();
+    menuShader.setFloat("opacity", 1.0f); // Full opacity for main menu
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, backgroundTexture);
     glBindVertexArray(menuVAO);
@@ -43,6 +50,37 @@ void Menu::draw() {
 bool Menu::isStartButtonClicked(double xpos, double ypos) {
     // Start button area (example coordinates)
     return (xpos > 400 && xpos < 600 && ypos > 350 && ypos < 450);
+}
+
+void Menu::drawWinMenu() {
+    // Draw the background first
+    menuShader.use();
+    menuShader.setFloat("opacity", winOpacity);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, win_backgroundTexture);
+    glBindVertexArray(menuVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    // Here you would render "Victory!" or "You Win!" text
+    // And options like "Play Again", "Main Menu"
+}
+
+void Menu::drawLoseMenu() {
+    // Draw the background first
+    menuShader.use();
+    menuShader.setFloat("opacity", loseOpacity);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, lose_backgroundTexture);
+    glBindVertexArray(menuVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    // Here you would render "Defeat!" or "You Died!" text
+    // And options like "Try Again", "Main Menu"
+}
+
+bool Menu::isRestartButtonClicked(double xpos, double ypos) {
+    // Restart button area (positioned above main menu button)
+    return (xpos > 430 && xpos < 564 && ypos > 515 && ypos < 566);
 }
 
 unsigned int Menu::loadTexture(const char* path)
