@@ -6,6 +6,10 @@ cmake_policy(VERSION 3.10)
 # can be compiled by the generated Visual Studio solution.
 project(ArenaSouls CXX C)
 
+## --- Configuration Options ---
+option(COPY_RESOURCES "Copy resources directory after build" OFF)
+
+
 ## --- Configuration ---
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -130,21 +134,34 @@ if(WIN32)
     endif()
 endif()
 
-## DONT NEED
-# Copy Shaders
-# file(GLOB SHADERS_TO_COPY
-#     "${CMAKE_SOURCE_DIR}/*.vs"
-#     "${CMAKE_SOURCE_DIR}/*.fs"
-# )
+# Copy Shaders - NEEDED for standalone execution
+if(COPY_RESOURCES)
+    file(GLOB SHADERS_TO_COPY
+        "${CMAKE_SOURCE_DIR}/*.vs"
+        "${CMAKE_SOURCE_DIR}/*.fs"
+    )
 
-# Copy shaders to the executable's output directory
-# foreach(SHADER ${SHADERS_TO_COPY})
-#     add_custom_command(
-#         TARGET ${PROJECT_NAME}
-#         POST_BUILD
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#             ${SHADER}
-#             $<TARGET_FILE_DIR:${PROJECT_NAME}>
-#         COMMENT "Copying shader: ${SHADER}"
-#     )
-# endforeach()
+    # Copy shaders to the executable's output directory
+    foreach(SHADER ${SHADERS_TO_COPY})
+        add_custom_command(
+            TARGET ${PROJECT_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${SHADER}
+                $<TARGET_FILE_DIR:${PROJECT_NAME}>
+            COMMENT "Copying shader: ${SHADER}"
+        )
+    endforeach()
+endif()
+
+# Copy resources directory to the executable's output directory
+if(COPY_RESOURCES)
+    add_custom_command(
+        TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/resources"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/resources"
+        COMMENT "Copying resources directory..."
+    )
+endif()
