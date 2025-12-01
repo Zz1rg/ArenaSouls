@@ -139,11 +139,17 @@
   <ItemGroup>
     <None Include="anim_model.fs" />
     <None Include="anim_model.vs" />
+    <None Include="debug.fs" />
+    <None Include="debug.vs" />
     <None Include="git.ignore" />
     <None Include="ui.fs" />
     <None Include="ui.vs" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Libraries\includes\Boss.h" />
+    <ClInclude Include="Libraries\includes\DebugDrawer.h" />
+    <ClInclude Include="Libraries\includes\Entity.h" />
+    <ClInclude Include="Libraries\includes\Hitbox.h" />
     <ClInclude Include="Libraries\includes\learnopengl\camera.h" />
     <ClInclude Include="Libraries\includes\Menu.h" />
     <ClInclude Include="Libraries\includes\Player.h" />
@@ -152,6 +158,9 @@
     <ClInclude Include="Libraries\includes\UI.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Boss.cpp" />
+    <ClCompile Include="DebugDrawer.cpp" />
+    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />

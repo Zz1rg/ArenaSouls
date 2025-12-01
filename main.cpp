@@ -3,6 +3,7 @@
 #include <learnopengl/shader_m.h>
 #include "PlayerCamera.h"
 #include "Player.h"
+#include "Boss.h"
 #include "Menu.h"
 
 #include <glm/glm.hpp>
@@ -104,6 +105,8 @@ int main()
     Shader shader("anim_model.vs", "anim_model.fs");
     Player player;
     player.setSoundEngine(&soundEngine);
+    Boss boss;
+    boss.setSoundEngine(&soundEngine);
     TrainingDummy dummy; // Position dummy 10 units ahead
     //Model arena("resources/objects/arena/maze-grass/obj_export/maze_grass.obj");
     Model arena("resources/objects/arena/obj_v3/arena.obj");
@@ -140,8 +143,55 @@ int main()
             {
                 player.position.z = (player.position.z > 0) ? WALL_Z : -WALL_Z;
             }
-            //charPosition = player.position;
-            //camera.FollowPlayer(player.position);
+            
+            // Update boss AI with player position
+            boss.setTarget(player.position);
+            boss.update(deltaTime);
+            
+            // Boss collision with walls
+            if (abs(boss.position.x) > WALL_X)
+            {
+                boss.position.x = (boss.position.x > 0) ? WALL_X : -WALL_X;
+            }
+            if (abs(boss.position.z) > WALL_Z)
+            {
+                boss.position.z = (boss.position.z > 0) ? WALL_Z : -WALL_Z;
+            }
+            
+            // Check collisions between player and boss
+            if (boss.isAlive()) {
+                // Boss attacking player
+                if (boss.isDamageActive && boss.isAttacking()) {
+                    for (const auto& bossHitbox : boss.attackHitboxes) {
+                        float distanceToPlayer = glm::distance(bossHitbox.worldPosition, player.position);
+                        if (distanceToPlayer < bossHitbox.radius + 0.5f) { // 0.5f is player body radius
+                            if (player.isBlockingState()) {
+                                // Player blocked the attack
+                                player.charState = PARRY;
+                                soundEngine.playSound("parry");
+                            } else {
+                                // Player takes damage
+                                player.health -= 20; // Boss deals 20 damage
+                                player.charState = IS_HIT;
+                                soundEngine.playSound("got_hit");
+                                if (player.health < 0) player.health = 0;
+                            }
+                        }
+                    }
+                }
+                
+                // Player attacking boss
+                if (player.isDamageActive && player.isAttacking()) {
+                    for (const auto& playerHitbox : player.attackHitboxes) {
+                        float distanceToBoss = glm::distance(playerHitbox.worldPosition, boss.position);
+                        if (distanceToBoss < playerHitbox.radius + 0.8f) { // 0.8f is boss body radius
+                            boss.takeDamage(25); // Player deals 25 damage
+                            break; // Only hit once per attack
+                        }
+                    }
+                }
+            }
+            
             dummy.update(deltaTime, player);
 
             glClearColor(0.817f, 0.9529f, 0.9804f, 1.0f);
@@ -159,6 +209,7 @@ int main()
 
             shader.setBool("useBones", true);
             player.draw(shader);
+            boss.draw(shader);
             dummy.draw(shader);
 
             // draw arena
@@ -171,12 +222,18 @@ int main()
 
             // --- Draw Hitboxes ---
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Render in wireframe mode to see through the spheres
+            // Player hitboxes
             for (const auto& hitbox : player.attackHitboxes) {
                 glm::vec3 color = player.isDamageActive ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
                 debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
             }
             for (const auto& hitbox : player.blockHitboxes) {
                 glm::vec3 color = player.isBlocking ? glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.5f, 0.5f, 0.5f);
+                debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
+            }
+            // Boss hitboxes
+            for (const auto& hitbox : boss.attackHitboxes) {
+                glm::vec3 color = boss.isDamageActive ? glm::vec3(1.0f, 0.5f, 0.0f) : glm::vec3(1.0f, 1.0f, 0.0f);
                 debugDrawer.drawSphere(hitbox.worldPosition, hitbox.radius, color, view, projection);
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch back to fill mode
@@ -197,6 +254,9 @@ int main()
             glDisable(GL_DEPTH_TEST); // Disable depth testing for UI rendering
             ui.renderHealthBar(player.health, 100.0f);
             ui.renderStaminaBar(player.stamina, 100.0f);
+            if (boss.isAlive()) {
+                ui.renderBossHealthBar(boss.health, boss.maxHealth, "Mutant Boss");
+            }
             glEnable(GL_DEPTH_TEST); // Re-enable depth testing
         }
         else if (State == GAME_MENU)
@@ -220,6 +280,35 @@ int main()
             if (!soundEngine.isSoundPlaying("test")) {
                 soundEngine.playSound("test");
                 std::cout << "Playing test sound!" << std::endl;
+            }
+        }
+        
+        // Debug controls for boss testing
+        if (State == GAME_ACTIVE) {
+            static bool bKeyPressed = false;
+            static bool nKeyPressed = false;
+            
+            // Press B to damage boss (for testing)
+            if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !bKeyPressed) {
+                boss.takeDamage(50);
+                std::cout << "Boss health: " << boss.health << "/" << boss.maxHealth << std::endl;
+                bKeyPressed = true;
+            }
+            if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE) {
+                bKeyPressed = false;
+            }
+            
+            // Press N to respawn boss (for testing)
+            if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && !nKeyPressed) {
+                boss.health = boss.maxHealth;
+                boss.isDead = false;
+                boss.bossState = BOSS_IDLE;
+                boss.position = glm::vec3(5.0f, -0.6f, 5.0f);
+                std::cout << "Boss respawned!" << std::endl;
+                nKeyPressed = true;
+            }
+            if (glfwGetKey(window, GLFW_KEY_N) == GLFW_RELEASE) {
+                nKeyPressed = false;
             }
         }
 

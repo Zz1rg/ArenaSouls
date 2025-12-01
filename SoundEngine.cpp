@@ -260,7 +260,7 @@ void SoundEngine::loadGameAssets() {
     for (const auto& basePath : basePaths) {
         hitPaths.push_back(basePath + "got_hit.wav");
     }
-    loadSoundWithPaths("hit", hitPaths);
+    loadSoundWithPaths("got_hit", hitPaths);
     
     // Test sound (for your current T key test)
     std::vector<std::string> testPaths;

@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <string>
 
 class UI {
 private:
@@ -19,6 +20,7 @@ public:
     void initialize(int screenWidth, int screenHeight);
     void renderHealthBar(float health, float maxHealth);
     void renderStaminaBar(float stamina, float maxStamina);
+    void renderBossHealthBar(float health, float maxHealth, const std::string& bossName = "Boss");
     void cleanup();
 
 private:

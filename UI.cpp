@@ -78,6 +78,29 @@ void UI::renderStaminaBar(float stamina, float maxStamina) {
     }
 }
 
+void UI::renderBossHealthBar(float health, float maxHealth, const std::string& bossName) {
+    float barWidth = 600.0f;
+    float barHeight = 30.0f;
+    float x = 200.0f; // Center it more on screen
+    float y = 20.0f;  // Top of screen
+    
+    // Render background (dark red)
+    renderRectangle(x, y, barWidth, barHeight, glm::vec3(0.3f, 0.1f, 0.1f));
+    
+    // Render boss health bar (red)
+    float healthPercent = health / maxHealth;
+    if (healthPercent > 0.0f) {
+        // Create color gradient from red (low health) to dark red (high health)
+        glm::vec3 color;
+        if (healthPercent > 0.3f) {
+            color = glm::vec3(0.8f, 0.1f, 0.1f); // Dark red
+        } else {
+            color = glm::vec3(1.0f, 0.0f, 0.0f); // Bright red (low health warning)
+        }
+        renderRectangle(x, y, barWidth * healthPercent, barHeight, color);
+    }
+}
+
 void UI::renderRectangle(float x, float y, float width, float height, glm::vec3 color) {
     if (!uiShader) return;
     
