@@ -7,4 +7,5 @@ ArenaSouls
 *.user
 *.zip
 
-resources/objects
+resources/objects/
+x64/Debug/
