@@ -50,6 +50,7 @@ public:
     BloodParticleSystem& operator=(const BloodParticleSystem& other);
     
     void spawnBloodSplatter(const glm::vec3& position, int particleCount = 15);
+    void spawnBlockParticles(const glm::vec3& position, int particleCount = 8);
     void update(float deltaTime);
     void render(DebugDrawer& debugDrawer, const glm::mat4& view, const glm::mat4& projection);
     void clear();

@@ -217,6 +217,9 @@ int main()
             // Draw blood effects after arena to avoid shader conflicts
             boss.renderBloodEffects(debugDrawer, view, projection);
             
+            // Draw player block effects
+            player.renderBlockEffects(debugDrawer, view, projection);
+            
             // Restore main shader after debug rendering
             shader.use();
 

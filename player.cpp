@@ -586,6 +586,9 @@ case DYING:
     // --- Update Hitbox Positions ---
     updateHitboxes(attackHitboxes);
     updateHitboxes(blockHitboxes);
+    
+    // Update block particle system
+    blockParticles.update(deltaTime);
 }
 
 bool Player::isAttacking() const {
@@ -625,4 +628,8 @@ void Player::checkCollisionWithBoss(Boss& boss) {
             }
         }
     }
+}
+
+void Player::renderBlockEffects(DebugDrawer& debugDrawer, const glm::mat4& view, const glm::mat4& projection) {
+    blockParticles.render(debugDrawer, view, projection);
 }

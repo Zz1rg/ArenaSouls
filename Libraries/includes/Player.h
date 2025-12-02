@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <learnopengl/camera.h>
 #include "PlayerCamera.h"
+#include "BloodParticle.h"
 
 
 // Forward declaration
@@ -53,6 +54,7 @@ public:
     bool inParryWindow;  // Track if player is in the parry timing window
     float parryWindowStart; // When the parry window started
     float parryWindowDuration; // How long the parry window lasts (0.25s)
+    BloodParticleSystem blockParticles; // Block effect system
 
     Player();
     void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
@@ -64,6 +66,7 @@ public:
     void setCameraReference(class PlayerCamera* camera);
     glm::vec3 getForwardDir();
     void checkCollisionWithBoss(class Boss& boss); // Forward declaration collision method
+    void renderBlockEffects(class DebugDrawer& debugDrawer, const glm::mat4& view, const glm::mat4& projection); // Render block particles
 
     bool isAttacking() const;
     bool isBlockingState() const;

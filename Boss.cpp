@@ -357,6 +357,10 @@ void Boss::checkCollisionWithPlayer(Player& player) {
                 if (player.isBlockingState()) {
                     // Check if player is in parry window (perfect timing)
                     player.consumeStamina(20.0f); // Blocking consumes stamina
+                    
+                    // Spawn block particles at player position
+                    player.blockParticles.spawnBlockParticles(player.position + glm::vec3(0.0f, 1.3f, 0.0f), 6);
+                    
                     if (player.isInParryWindow()) {
                         // Perfect parry! Trigger long stunt for extended vulnerability window
                         bossState = BOSS_LONG_STUNT;
