@@ -117,6 +117,7 @@ int main()
     Shader shader("anim_model.vs", "anim_model.fs");
     Player player;
     player.setSoundEngine(&soundEngine);
+    player.setCameraReference(&camera);
     Boss boss;
     boss.setSoundEngine(&soundEngine);
     boss.setPlayerReference(&player); // Set player reference for death checking
@@ -152,7 +153,7 @@ int main()
         {
             if (player.isDead()) {
                 State = GAME_LOSE;
-            } else if (!boss.isAlive()) {
+            } else if (boss.isDead()) {
                 State = GAME_WIN;
             }
 
@@ -250,7 +251,7 @@ int main()
             glDisable(GL_DEPTH_TEST); // Disable depth testing for UI rendering
             ui.renderHealthBar(player.health, 100.0f);
             ui.renderStaminaBar(player.stamina, 100.0f);
-            if (boss.isAlive()) {
+            if (!boss.isDead()) {
                 ui.renderBossHealthBar(boss.health, boss.maxHealth, "Mutant Boss");
             }
             glEnable(GL_DEPTH_TEST); // Re-enable depth testing
@@ -330,9 +331,7 @@ int main()
             
             // Press N to respawn boss (for testing)
             if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && !nKeyPressed) {
-                boss.health = boss.maxHealth;
-                boss.isDead = false;
-                boss.bossState = BOSS_IDLE;
+                boss.health = boss.maxHealth;                boss.bossState = BOSS_IDLE;
                 boss.position = glm::vec3(5.0f, -0.6f, 5.0f);
                 std::cout << "Boss respawned!" << std::endl;
                 nKeyPressed = true;

@@ -25,14 +25,15 @@ Boss::Boss()
     longStuntAnim("resources/objects/mutant-boss/Long Stunt/Injured Stumble Idle.dae", &model),
     dyingAnim("resources/objects/mutant-boss/Mutant Dying/Mutant Dying.dae", &model),
     bossState(BOSS_IDLE),
-    isDead(false),
     canAttack(true),
     lastAttackTime(0.0f),
     attackCooldown(0.4f),
     hasHitPlayer(false),
     isTakingHit(false),
     soundEngine(nullptr),
-    playerRef(nullptr)
+    playerRef(nullptr),
+    deathHoldTimer(0.0f),
+    deathHoldDuration(3.0f)
 {
     position = glm::vec3(0.0f, -0.6f, -15.0f); // Start position away from player
     rotation = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -51,7 +52,7 @@ void Boss::update(float deltaTime)
     isDamageActive = false;
     isTakingHit = false; // Reset taking hit flag each frame
 
-    if (isDead) {
+    if (isDead()) {
         return; // Don't update if boss is dead
     }
 
@@ -122,8 +123,8 @@ void Boss::update(float deltaTime)
         animator.PlayAnimation(&attack3Anim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         
         // Damage window for attack 3
-        if (animator.m_CurrentTime > attack3Anim.GetDuration() * 0.2f && 
-            animator.m_CurrentTime < attack3Anim.GetDuration() * 0.6f) {
+        if (animator.m_CurrentTime > attack3Anim.GetDuration() * 0.45f && 
+            animator.m_CurrentTime < attack3Anim.GetDuration() * 0.7f) {
             isDamageActive = true;
         }
 
@@ -154,12 +155,22 @@ void Boss::update(float deltaTime)
 
     case BOSS_DYING:
         currentAnim = &dyingAnim;
-        animator.PlayAnimation(&dyingAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         
         if (animator.m_CurrentTime > dyingAnim.GetDuration() - 0.1f) {
-            bossState = BOSS_DEAD;
-            isDead = true;
-            playActionSound("boss_death");
+            if (deathHoldTimer <= 0.0f) {
+                deathHoldTimer = glfwGetTime();
+            }
+            
+            // Hold at the last frame
+            animator.m_CurrentTime = dyingAnim.GetDuration() - 0.05f;
+            
+            if (glfwGetTime() - deathHoldTimer >= deathHoldDuration) {
+                bossState = BOSS_DEAD;
+                playActionSound("boss_death");
+            }
+        } else {
+            // Only play animation if we haven't reached the end yet
+            animator.PlayAnimation(&dyingAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         }
         break;
 
@@ -259,7 +270,7 @@ void Boss::setTarget(const glm::vec3& playerPos)
 
 void Boss::takeDamage(int damage)
 {
-    if (isDead || isTakingHit) return; // Prevent multiple hits in same frame
+    if (isDead() || isTakingHit) return; // Prevent multiple hits in same frame
 
     health -= damage;
     isTakingHit = true;
@@ -294,11 +305,6 @@ bool Boss::isAttacking() const
     return bossState == BOSS_ATTACK_1 || bossState == BOSS_ATTACK_2 || bossState == BOSS_ATTACK_3;
 }
 
-bool Boss::isAlive() const
-{
-    return !isDead && health > 0;
-}
-
 float Boss::getDistanceToTarget() const
 {
     if (targetPosition == glm::vec3(0.0f)) return 999.0f; // Very far if no target
@@ -322,7 +328,7 @@ glm::vec3 Boss::getForwardDir()
 }
 
 void Boss::checkCollisionWithPlayer(Player& player) {
-    if (!isAlive()) return;
+    if (isDead()) return;
     
     // Boss attacking player
     if (isDamageActive && isAttacking() && !hasHitPlayer) {

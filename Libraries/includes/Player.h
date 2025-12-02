@@ -71,6 +71,8 @@ public:
 private:
     bool handleAttack(Animation& attackAnim, float damageStart, float damageEnd);
     void playActionSound(const std::string& soundName);
+    float deathHoldTimer;
+    float deathHoldDuration;
 };
 
 #endif

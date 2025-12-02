@@ -39,7 +39,9 @@ Player::Player()
       isTakingHit(false),
       inParryWindow(false),
       parryWindowStart(0.0f),
-      parryWindowDuration(0.25f)
+      parryWindowDuration(0.25f),
+      deathHoldTimer(0.0f),
+      deathHoldDuration(3.0f)
 {
     position = glm::vec3(0.0f, -0.6f, -2.0f);
     rotation = glm::vec3(0.0f, 180.0f, 0.0f);
@@ -47,7 +49,7 @@ Player::Player()
 
     // --- Initialize Hitboxes ---
     attackHitboxes.push_back({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 1.5f});
-    blockHitboxes.push_back({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 0.5f});
+    blockHitboxes.push_back({"mixamorig_Spine2", glm::vec3(0.0f, 150.0f, 0.0f), 1.0f});
 }
 
 void Player::processInput(GLFWwindow* window, Camera& camera, float deltaTime)
@@ -549,11 +551,23 @@ void Player::update(float deltaTime)
         }
         break;
 
-    case DYING:
+case DYING:
         currentAnim = &deadAnim;
-        animator.PlayAnimation(&deadAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+        
         if (animator.m_CurrentTime > deadAnim.GetDuration() - 0.1f) {
-            charState = DEAD;
+            if (deathHoldTimer <= 0.0f) {
+                deathHoldTimer = glfwGetTime();
+            }
+            
+            // Hold at the last frame - don't play animation anymore
+            animator.m_CurrentTime = deadAnim.GetDuration() - 0.05f;
+            
+            if (glfwGetTime() - deathHoldTimer >= deathHoldDuration) {
+                charState = DEAD;
+            }
+        } else {
+            // Only play animation if we haven't reached the end yet
+            animator.PlayAnimation(&deadAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         }
         break;
     }
@@ -589,7 +603,7 @@ bool Player::isDead() const {
 }
 
 void Player::checkCollisionWithBoss(Boss& boss) {
-    if (!boss.isAlive()) return;
+    if (boss.isDead()) return;
     
     // Player attacking boss
     if (isDamageActive && isAttacking() && !hasHitTarget) {

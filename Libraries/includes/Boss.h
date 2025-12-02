@@ -36,13 +36,14 @@ public:
     
     SoundEngine* soundEngine;
     glm::vec3 targetPosition; // Player position for AI targeting
-    bool isDead;
     bool canAttack;
     float lastAttackTime;
     float attackCooldown;
     bool hasHitPlayer;  // Track if current attack has already hit player
     bool isTakingHit;   // Track if boss is currently taking damage
     class Player* playerRef; // Reference to player for checking if alive
+    float deathHoldTimer; // Timer for holding death animation
+    float deathHoldDuration; // How long to hold death animation
 
     Boss();
     void update(float deltaTime) override;
@@ -53,7 +54,7 @@ public:
     void checkCollisionWithPlayer(class Player& player); // Forward declaration collision method
     
     bool isAttacking() const;
-    bool isAlive() const;
+    bool isDead() const { return bossState == BOSS_DEAD; }
     float getDistanceToTarget() const;
 
 private:
