@@ -16,11 +16,20 @@ public:
     void updateShake(float deltaTime);
     void shake(float duration, float magnitude);
     void FollowPlayerSmoothSpring(const glm::vec3& playerPosition, const glm::vec3& offset, float deltaTime);
+    
+    // Mouse smoothing controls
+    void setMouseSmoothing(float smoothing) { mouseSmoothing = smoothing; }
+    float getMouseSmoothing() const { return mouseSmoothing; }
 
 private:
     bool firstMouse;
     float lastX;
     float lastY;
+
+    // Mouse smoothing
+    float targetYaw;
+    float targetPitch;
+    float mouseSmoothing;
 
     bool isShaking;
     float shakeDuration;

@@ -2,7 +2,7 @@
 #include <cmath>
 
 PlayerCamera::PlayerCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-    : Camera(position, up, yaw, pitch), firstMouse(true), lastX(0.0f), lastY(0.0f), isShaking(false), shakeDuration(0.0f), shakeMagnitude(0.0f), shakeTimer(0.0f)
+    : Camera(position, up, yaw, pitch), firstMouse(true), lastX(0.0f), lastY(0.0f), targetYaw(yaw), targetPitch(pitch), mouseSmoothing(8.0f), isShaking(false), shakeDuration(0.0f), shakeMagnitude(0.0f), shakeTimer(0.0f)
 {
     // It's better to initialize lastX and lastY with the actual screen center,
     // but we'll set them in the first mouse callback.
@@ -23,8 +23,18 @@ void PlayerCamera::ProcessMouseCallback(double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    // Use regular camera movement for free look
-    ProcessMouseMovement(xoffset, yoffset);
+    // Update target yaw and pitch instead of directly modifying camera
+    xoffset *= MouseSensitivity;
+    yoffset *= MouseSensitivity;
+
+    targetYaw += xoffset;
+    targetPitch += yoffset;
+
+    // Constrain pitch
+    if (targetPitch > 15.0f)
+        targetPitch = 15.0f;
+    if (targetPitch < -15.0f)
+        targetPitch = -15.0f;
 }
 
 void PlayerCamera::ProcessScrollCallback(double yoffset)
@@ -39,17 +49,24 @@ void PlayerCamera::FollowPlayer(const glm::vec3& playerPosition, const glm::vec3
 
 void PlayerCamera::FollowPlayerWithOffset(const glm::vec3& playerPosition, const glm::vec3& offset, float panSpeed, float verticalPanSpeed, float deltaTime) {
 
+    // Smooth mouse rotation
+    float rotationSpeed = mouseSmoothing * deltaTime;
+    Yaw += (targetYaw - Yaw) * rotationSpeed;
+    Pitch += (targetPitch - Pitch) * rotationSpeed;
+    
+    // Update camera vectors after rotation smoothing
+    glm::vec3 front;
+    front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    front.y = sin(glm::radians(Pitch));
+    front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    Front = glm::normalize(front);
+    Right = glm::normalize(glm::cross(Front, WorldUp));
+    Up = glm::normalize(glm::cross(Right, Front));
+
     glm::vec3 desiredPosition = playerPosition - Front * offset.z + glm::vec3(0.0f, offset.y, 0.0f);
     Position.x += (desiredPosition.x - Position.x) * panSpeed;
     Position.z += (desiredPosition.z - Position.z) * panSpeed;
     Position.y += (desiredPosition.y - Position.y) * verticalPanSpeed;
-    /*Position.x = desiredPosition.x;
-    Position.z = desiredPosition.z;
-    Position.y = desiredPosition.y;*/
-
-    //float smoothSpeed = 12.0f; // higher = faster catch-up (less lag)
-    //float t = 1.0f - expf(-smoothSpeed * deltaTime);
-    //Position = glm::mix(Position, desiredPosition, t);
 }
 
 glm::vec3 velocity(0.0f);
@@ -61,6 +78,20 @@ void PlayerCamera::FollowPlayerSmoothSpring(
     const glm::vec3& offset,
     float deltaTime)
 {
+    // Smooth mouse rotation
+    float rotationSpeed = mouseSmoothing * deltaTime;
+    Yaw += (targetYaw - Yaw) * rotationSpeed;
+    Pitch += (targetPitch - Pitch) * rotationSpeed;
+    
+    // Update camera vectors after rotation smoothing
+    glm::vec3 front;
+    front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    front.y = sin(glm::radians(Pitch));
+    front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    Front = glm::normalize(front);
+    Right = glm::normalize(glm::cross(Front, WorldUp));
+    Up = glm::normalize(glm::cross(Right, Front));
+
     glm::vec3 desiredPosition = playerPosition - Front * offset.z + glm::vec3(0.0f, offset.y, 0.0f);
     glm::vec3 displacement = desiredPosition - Position;
     glm::vec3 acceleration = displacement * stiffness - velocity * damping;
