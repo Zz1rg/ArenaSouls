@@ -123,7 +123,7 @@ void Boss::update(float deltaTime)
         animator.PlayAnimation(&attack3Anim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         
         // Damage window for attack 3
-        if (animator.m_CurrentTime > attack3Anim.GetDuration() * 0.45f && 
+        if (animator.m_CurrentTime > attack3Anim.GetDuration() * 0.35f && 
             animator.m_CurrentTime < attack3Anim.GetDuration() * 0.7f) {
             isDamageActive = true;
         }
@@ -155,6 +155,9 @@ void Boss::update(float deltaTime)
 
     case BOSS_DYING:
         currentAnim = &dyingAnim;
+        if (animator.m_CurrentTime <= 0.1f)
+            playActionSound("boss_death");
+
         
         if (animator.m_CurrentTime > dyingAnim.GetDuration() - 0.1f) {
             if (deathHoldTimer <= 0.0f) {
@@ -166,7 +169,6 @@ void Boss::update(float deltaTime)
             
             if (glfwGetTime() - deathHoldTimer >= deathHoldDuration) {
                 bossState = BOSS_DEAD;
-                playActionSound("boss_death");
             }
         } else {
             // Only play animation if we haven't reached the end yet
