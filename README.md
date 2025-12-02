@@ -17,7 +17,7 @@ Arena Souls is a third-person combat game where players face off against challen
 
 
 
-https://github.com/user-attachments/assets/155943fd-8233-45a7-9b6c-2d4c0becc766
+https://github.com/user-attachments/assets/655f19d9-cb79-4cd0-922b-d1060064a17c
 
 
 
@@ -26,8 +26,10 @@ https://github.com/user-attachments/assets/155943fd-8233-45a7-9b6c-2d4c0becc766
 <img width="600" alt="Screenshot1" src="./.github/Screenshot 2025-12-01 213508.png" />
 
 <div style="display: inline-block;">
-<img width="300" alt="Screenshot1" src="./.github/Screenshot 2025-12-01 213622.png" />
-<img width="300" alt="Screenshot1" src="./.github/image.png" />
+<!-- <img width="300" alt="Screenshot1" src="./.github/Screenshot 2025-12-01 213622.png" />
+<img width="300" alt="Screenshot1" src="./.github/image.png" /> -->
+<img width="498" height="400" alt="image" src="https://github.com/user-attachments/assets/d50c4f38-a76e-4f11-8e70-bda38cdd2c55" />
+
 </div>
 <div style="display: inline-block;">
 <img width="300" alt="Screenshot1" src="./.github/Screenshot 2025-12-01 213600.png" />
