@@ -1,6 +1,7 @@
 #include "Boss.h"
 #include "Player.h"
 #include "SoundEngine.h"
+#include "BloodParticle.h"
 #include <stb_image.h>
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -185,6 +186,9 @@ void Boss::update(float deltaTime)
 
     // Update hitbox positions
     updateHitboxes(attackHitboxes);
+    
+    // Update blood particle system
+    bloodParticles.update(deltaTime);
 }
 
 void Boss::updateAI(float deltaTime)
@@ -277,10 +281,15 @@ void Boss::takeDamage(int damage)
     health -= damage;
     isTakingHit = true;
     
+    // Spawn blood splatter effect
+    bloodParticles.spawnBloodSplatter(position + glm::vec3(0.0f, 0.5f, 0.0f), 12);
+    
     if (health <= 0) {
         health = 0;
         bossState = BOSS_DYING;
         animator.m_CurrentTime = 0.0f;
+        // Spawn extra blood on death
+        bloodParticles.spawnBloodSplatter(position + glm::vec3(0.0f, 0.5f, 0.0f), 20);
         // playActionSound("boss_hurt");
     } else {
         // Play stunt animation occasionally when taking damage, but not if in long stunt
@@ -379,4 +388,8 @@ void Boss::checkCollisionWithPlayer(Player& player) {
             }
         }
     }
+}
+
+void Boss::renderBloodEffects(DebugDrawer& debugDrawer, const glm::mat4& view, const glm::mat4& projection) {
+    bloodParticles.render(debugDrawer, view, projection);
 }

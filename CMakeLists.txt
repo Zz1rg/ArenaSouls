@@ -80,6 +80,7 @@ set(MAIN_SOURCES
     UI.cpp
     DebugDrawer.cpp
     Entity.cpp
+    BloodParticle.cpp
 )
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES})

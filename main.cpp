@@ -214,6 +214,12 @@ int main()
             shader.setMat4("model", model);
             arena.Draw(shader);
 
+            // Draw blood effects after arena to avoid shader conflicts
+            boss.renderBloodEffects(debugDrawer, view, projection);
+            
+            // Restore main shader after debug rendering
+            shader.use();
+
             // --- Draw Hitboxes ---
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Render in wireframe mode to see through the spheres
             // Player hitboxes

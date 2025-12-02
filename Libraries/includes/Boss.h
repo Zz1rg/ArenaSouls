@@ -4,6 +4,7 @@
 #include "Entity.h"
 #include <GLFW/glfw3.h>
 #include <learnopengl/camera.h>
+#include "BloodParticle.h"
 
 // Forward declaration
 class SoundEngine;
@@ -44,6 +45,7 @@ public:
     class Player* playerRef; // Reference to player for checking if alive
     float deathHoldTimer; // Timer for holding death animation
     float deathHoldDuration; // How long to hold death animation
+    BloodParticleSystem bloodParticles; // Blood effect system
 
     Boss();
     void update(float deltaTime) override;
@@ -52,6 +54,7 @@ public:
     void setSoundEngine(SoundEngine* engine);
     void setPlayerReference(class Player* player); // Set reference to player for death checking
     void checkCollisionWithPlayer(class Player& player); // Forward declaration collision method
+    void renderBloodEffects(class DebugDrawer& debugDrawer, const glm::mat4& view, const glm::mat4& projection); // Render blood particles
     
     bool isAttacking() const;
     bool isDead() const { return bossState == BOSS_DEAD; }
