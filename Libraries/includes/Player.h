@@ -4,6 +4,8 @@
 #include "Entity.h"
 #include <GLFW/glfw3.h>
 #include <learnopengl/camera.h>
+#include "PlayerCamera.h"
+
 
 // Forward declaration
 class SoundEngine;
@@ -44,6 +46,7 @@ public:
     bool chain;
 	bool isBlocking;
     SoundEngine* soundEngine;
+    PlayerCamera* cameraRef; // Reference to camera for shake effects
     glm::vec3 moveDir;
     bool hasHitTarget;   // Track if current attack has already hit a target
     bool isTakingHit;    // Track if player is currently taking damage
@@ -58,6 +61,7 @@ public:
     void tryDodge();
     void updateStamina(float deltaTime);
     void setSoundEngine(SoundEngine* engine);
+    void setCameraReference(class PlayerCamera* camera);
     glm::vec3 getForwardDir();
     void checkCollisionWithBoss(class Boss& boss); // Forward declaration collision method
 

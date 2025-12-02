@@ -359,6 +359,7 @@ void initGame(Player& player, Boss& boss, TrainingDummy& dummy, PlayerCamera& ca
 {
     player = Player();
     player.setSoundEngine(&soundEngine);
+    player.setCameraReference(&camera);
     
     boss = Boss();
     boss.setSoundEngine(&soundEngine);

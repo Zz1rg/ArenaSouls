@@ -35,6 +35,7 @@ Player::Player()
       chain(false),
 	  isBlocking(false),
       soundEngine(nullptr),
+      cameraRef(nullptr),
       hasHitTarget(false),
       isTakingHit(false),
       inParryWindow(false),
@@ -162,6 +163,10 @@ void Player::updateStamina(float deltaTime) {
 
 void Player::setSoundEngine(SoundEngine* engine) {
     soundEngine = engine;
+}
+
+void Player::setCameraReference(PlayerCamera* camera) {
+    cameraRef = camera;
 }
 
 void Player::consumeStamina(float amount) {
@@ -541,6 +546,10 @@ void Player::update(float deltaTime)
 
     case IS_HIT:
         currentAnim = &isHitAnim;
+        // Trigger camera shake when hit
+        if (cameraRef) {
+            cameraRef->shake(0.05f, 0.025f); // 0.05 seconds duration, 0.05 magnitude
+        }
         // Sound is played when the state is set by the boss collision detection
         animator.PlayAnimation(&isHitAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (animator.m_CurrentTime > isHitAnim.GetDuration() - 0.1f) {
