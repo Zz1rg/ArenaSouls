@@ -11,10 +11,11 @@ struct BloodParticle {
     float lifetime;
     float maxLifetime;
     glm::vec3 color;
+    glm::vec3 originalColor; // Store original color for proper fading
     float size;
 
     BloodParticle(const glm::vec3& pos, const glm::vec3& vel, float life, const glm::vec3& col, float sz)
-        : position(pos), velocity(vel), lifetime(life), maxLifetime(life), color(col), size(sz) {}
+        : position(pos), velocity(vel), lifetime(life), maxLifetime(life), color(col), originalColor(col), size(sz) {}
     
     bool isAlive() const {
         return lifetime > 0.0f;
@@ -30,9 +31,9 @@ struct BloodParticle {
         // Decrease lifetime
         lifetime -= deltaTime;
         
-        // Fade color over time
+        // Fade color over time using original color
         float alpha = lifetime / maxLifetime;
-        color = glm::vec3(0.8f, 0.1f, 0.1f) * alpha;  // Dark red that fades
+        color = originalColor * alpha;  // Fade to transparent while preserving original color
     }
 };
 
@@ -51,6 +52,7 @@ public:
     
     void spawnBloodSplatter(const glm::vec3& position, int particleCount = 15);
     void spawnBlockParticles(const glm::vec3& position, int particleCount = 8);
+    void spawnParryParticles(const glm::vec3& position, int particleCount = 8);
     void update(float deltaTime);
     void render(DebugDrawer& debugDrawer, const glm::mat4& view, const glm::mat4& projection);
     void clear();

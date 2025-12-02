@@ -146,6 +146,7 @@
     <None Include="ui.vs" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Libraries\includes\BloodParticle.h" />
     <ClInclude Include="Libraries\includes\Boss.h" />
     <ClInclude Include="Libraries\includes\DebugDrawer.h" />
     <ClInclude Include="Libraries\includes\Entity.h" />
@@ -158,6 +159,7 @@
     <ClInclude Include="Libraries\includes\UI.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BloodParticle.cpp" />
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="DebugDrawer.cpp" />
     <ClCompile Include="Entity.cpp" />

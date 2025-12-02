@@ -358,11 +358,11 @@ void Boss::checkCollisionWithPlayer(Player& player) {
                     // Check if player is in parry window (perfect timing)
                     player.consumeStamina(20.0f); // Blocking consumes stamina
                     
-                    // Spawn block particles at player position
-                    player.blockParticles.spawnBlockParticles(player.position + glm::vec3(0.0f, 1.3f, 0.0f), 6);
-                    
                     if (player.isInParryWindow()) {
-                        // Perfect parry! Trigger long stunt for extended vulnerability window
+                        // Perfect parry! Spawn gold parry particles
+                        player.blockParticles.spawnParryParticles(player.position + glm::vec3(0.0f, 1.3f, 0.0f), 8);
+                        
+                        // Trigger long stunt for extended vulnerability window
                         bossState = BOSS_LONG_STUNT;
                         player.charState = PARRY;
                         player.animator.m_CurrentTime = 0.0f;
@@ -371,7 +371,9 @@ void Boss::checkCollisionWithPlayer(Player& player) {
                             soundEngine->playSound("parry");
                         }
                     } else {
-                        // Regular block
+                        // Regular block - spawn gray block particles
+                        player.blockParticles.spawnBlockParticles(player.position + glm::vec3(0.0f, 1.3f, 0.0f), 6);
+                        
                         player.animator.m_CurrentTime = 0.0f;
                         if (soundEngine) {
                             soundEngine->playSound("block");

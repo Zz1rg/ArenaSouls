@@ -186,7 +186,7 @@ int main()
             
             // dummy.update(deltaTime, player);
 
-            glClearColor(0.817f, 0.9529f, 0.9804f, 1.0f);
+            glClearColor(0.2f, 0.3f, 0.4f, 1.0f); // Darker sky color that works with enhanced lighting
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             shader.use();
@@ -196,8 +196,22 @@ int main()
             shader.setMat4("view", view);
             
             shader.setVec3("viewPos", camera.Position);
-            shader.setVec3("lightPos", glm::vec3(4.0f, 4.0f, 4.0f));
-            //std::cout << "HI";
+            
+            // Enhanced lighting setup
+            // Directional light (sun) - creates main lighting and shadows
+            shader.setVec3("sunLightDir", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f))); // Angled from above (negative for proper direction)
+            shader.setVec3("sunLightColor", glm::vec3(0.9f, 0.85f, 0.7f)); // Warm sunlight (reduced intensity)
+            
+            // Point light - adds local illumination and highlights
+            shader.setVec3("pointLightPos", glm::vec3(0.0f, 5.0f, 0.0f)); // Above arena center
+            shader.setVec3("pointLightColor", glm::vec3(0.4f, 0.4f, 0.5f)); // Reduced cool light
+            
+            // Ambient lighting - provides base illumination
+            shader.setVec3("ambientLight", glm::vec3(0.4f, 0.4f, 0.45f)); // Brighter, more neutral ambient
+            
+            // Material properties
+            shader.setFloat("shininess", 32.0f);
+            shader.setFloat("specularStrength", 0.6f);
 
             shader.setBool("useBones", true);
             player.draw(shader);

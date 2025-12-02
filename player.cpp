@@ -535,6 +535,9 @@ void Player::update(float deltaTime)
         break;
 
     case PARRY:
+        if (cameraRef) {
+            cameraRef->shake(0.1f, 0.03f); // 0.1 seconds duration, 0.03 magnitude
+        }
         animator.PlayAnimation(&parryAnim, NULL, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
         if (animator.m_CurrentTime > parryAnim.GetDuration() - 0.1f) {
             blendAmount = 0.0f;
@@ -562,6 +565,9 @@ void Player::update(float deltaTime)
 
 case DYING:
         currentAnim = &deadAnim;
+        if (cameraRef) {
+            cameraRef->shake(0.25f, 0.04f); // 0.25 seconds duration, 0.04 magnitude
+        }
         
         if (animator.m_CurrentTime > deadAnim.GetDuration() - 0.1f) {
             if (deathHoldTimer <= 0.0f) {
